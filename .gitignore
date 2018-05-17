@@ -1,0 +1,11 @@
+# compiled
+*.py~
+README.md~
+.gitignore~
+.ipynb_checkpoints/
+
+# documents
+*.pdf
+
+# Mac related
+.DS_Store
