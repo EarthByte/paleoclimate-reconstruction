@@ -1,4 +1,4 @@
-# paleoclimate-reconstruction
+# Paleo-Climate Reconstruction
 Paleo-Climate Precipitation Reconstruction using Bayesian Machine Learning
 
 The main goal of the project is to model global precipitation using geological indicators (including location on continent and sedimentary deposits).
@@ -14,7 +14,8 @@ and the following simulated results:
 ## Step 0: Installation
 * Check that you have necessary packages installed (see requirements.txt)
 * download the query_paleogeography folder from: https://cloudstor.aarnet.edu.au/plus/s/HRkPptZuiZEm8OV 
-* install pyGPlates (instructions at http://www.gplates.org/docs/pygplates/index.html ) and GMT
+* install pyGPlates (instructions at http://www.gplates.org/docs/pygplates/index.html )
+* install GMT
   * Note that both the pyGPlates and query_paleogeography folders will need to be in the PYTHONPATH (the pyGPlates documentation talks about this).
 
 ## Step 1: Pre-processing raw data
