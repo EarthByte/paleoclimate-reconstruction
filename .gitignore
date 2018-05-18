@@ -4,8 +4,11 @@ README.md~
 .gitignore~
 .ipynb_checkpoints/
 
-# documents
+# images & documents
 *.pdf
+*.png
+*.ps
+*.eps
 
 # Mac related
 .DS_Store
