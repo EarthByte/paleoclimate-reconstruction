@@ -19,5 +19,16 @@ and the following simulated results:
   * Note that both the pyGPlates and query_paleogeography folders will need to be in the PYTHONPATH (the pyGPlates documentation talks about this).
 
 ## Step 1: Pre-processing raw data
-Run 
->> python data_preprocessing.py
+Run
+```sh 
+python data_preprocessing.py
+```
+
+## Step 2: Bayesian modelling
+```sh
+python run_GPplus.py
+```
+Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus):
+
+
+ 
