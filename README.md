@@ -23,12 +23,21 @@ Run
 ```sh 
 python data_preprocessing.py
 ```
+creates
+* gridded input data maps in data/images/
+* precipitation_gpmodel_data.csv in data/
+
 
 ## Step 2: Bayesian modelling
 ```sh
 python run_GPplus.py
 ```
-Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus):
+Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Changes include:
+* choice of functions and parameters depending on version of george being used
+* references to new variable target_desc instead of Crime
+* removal of dropout flag (was never used)
+* getting and writing parameter-scaling terms (min and range) to csv-file
+* adding exact prediction line to output plot
 
 
  
