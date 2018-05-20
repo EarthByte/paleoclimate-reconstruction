@@ -1,8 +1,11 @@
 # compiled
 *.py~
+*.pyc
+
 README.md~
 .gitignore~
 .ipynb_checkpoints/
+
 
 # images & documents
 *.pdf
