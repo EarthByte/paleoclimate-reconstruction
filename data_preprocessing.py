@@ -39,9 +39,7 @@ data_deposits_filename = data_folder+"LithData_PaleoXY_Matthews2016_20180226.csv
 key_deposits_filename  = data_folder+"LithologyCodes.csv"
 data_rainfall_filename = data_folder+"PRECT_Average_annum.grd"
 
-t = datetime.datetime.now()
-datestring = t.strftime('%Y-%m-%d')
-images_folder = data_folder + 'images/' + datestring + '/'
+images_folder = data_folder + 'images/'
 print("The output path is %s"%(images_folder))
 if not os.path.isdir(images_folder):
     os.makedirs(images_folder)
@@ -71,7 +69,7 @@ for ilat in np.arange(nlatbins-1):
 lat_spacing[nlatbins-1] = 90. - lat_coords[nlatbins-1]
 
 print("Check central latitude bin-edges ...")
-print(lat_coords[nlatbins/2-2:nlatbins/2+2])
+print(lat_coords[nlatbins/2-1:nlatbins/2+2])
 
 # remove polar grid-bins
 nlatbins = nlatbins-2
