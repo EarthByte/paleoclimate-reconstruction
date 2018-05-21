@@ -30,6 +30,7 @@ creates
 
 ## Step 2: Bayesian modelling
 ```sh
+cd GPplus2/
 python run_GPplus.py
 ```
 Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Changes include:
