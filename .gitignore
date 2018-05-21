@@ -1,6 +1,8 @@
 # compiled
 *.py~
 *.pyc
+__pycache__/
+
 
 README.md~
 .gitignore~
