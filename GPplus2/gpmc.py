@@ -265,7 +265,8 @@ class GPMC:
         p = params[self.ndim_blr+2:] 
         lnp_blr, resid_blr = self.lnprob_blr(alpha, beta, sigma)
         self.residual_blr = resid_blr
-        return lnp_blr + self.lnprob_gp(p, sigma, 0.) 
+        #return lnp_blr + self.lnprob_gp(p, sigma, 0.) 
+        return self.lnprior_blr(beta, sigma) + self.lnprob_gp(p, sigma, 0.) 
 
     def scale_data(self, data):
         # Scales input data with RobustScaler
