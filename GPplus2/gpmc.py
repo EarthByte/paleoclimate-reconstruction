@@ -298,9 +298,9 @@ class GPMC:
             p0_gp = np.log(self.kernel.pars)
         else: 
             p0_gp = self.kernel.get_parameter_vector()
-        alpha0 = 0.1
+        alpha0 = np.mean(self.y)
         beta0 = np.zeros((self.ndim_blr))
-        sigma0 = 0.1
+        sigma0 = np.std(self.y)
         p0_comb = np.hstack((alpha0, sigma0, beta0, p0_gp))
         p0 = [p0_comb + 1e-4 * np.random.randn(self.ndim) for i in range(self.nwalkers)]
 
