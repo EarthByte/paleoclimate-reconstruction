@@ -211,7 +211,8 @@ class GPMC:
             self.kernel.pars = np.exp(p)
         else:
             self.kernel.set_parameter_vector(p)
-        gp = george.GP(self.kernel, mean=np.mean(self.residual_blr))
+        #gp = george.GP(self.kernel, mean=np.mean(self.residual_blr))
+        gp = george.GP(self.kernel, mean=0.)
         try:
             gp.compute(self.X_gp, err_blr)
             # Note that this can be speed up with pre-calculating covariance matrix and then updating 
@@ -350,7 +351,8 @@ class GPMC:
         self.residual_blr = (self.y - self.mu_blr)
         self.mu_blr = self.mu_blr 
         self.residual_blr = self.residual_blr 
-        gp = george.GP(self.kernel, mean=np.mean(self.residual_blr))
+        #gp = george.GP(self.kernel, mean=np.mean(self.residual_blr))
+        gp = george.GP(self.kernel, mean=0.)
         if george.__version__ < '0.3.0':
             gp.kernel.pars = np.exp(p_fit)
             self.gp_fit = gp.kernel.pars
@@ -392,7 +394,8 @@ class GPMC:
         if split_traintest > 0.:
             self.mu_blr_test = self.predict_blr(self.X_blr_test, self.alpha_fit, self.beta_fit)  # BLR Model
             self.residual_blr_test = (self.y_test - self.mu_blr_test)
-            gp = george.GP(self.kernel, mean=np.mean(self.residual_blr_test))
+            #gp = george.GP(self.kernel, mean=np.mean(self.residual_blr_test))
+            gp = george.GP(self.kernel, mean=0.)
             gp.compute(self.X_gp_test, self.sigma_fit)
             self.mu_gp_test, _ = gp.predict(self.residual_blr_test, self.X_gp_test)  # GP Model 
             self.y_model_test = self.mu_gp_test + self.mu_blr_test  # Final Model 
@@ -506,7 +509,8 @@ class GPMC:
             # Calculate for train data set:
             y_blr = self.predict_blr(self.X_blr, alpha, beta)
             resid_blr = self.y - y_blr
-            gp = george.GP(self.kernel, mean=np.mean(resid_blr))
+            #gp = george.GP(self.kernel, mean=np.mean(resid_blr))
+            gp = george.GP(self.kernel, mean=0.)
             if george.__version__ < '0.3.0':
                 gp.kernel.pars = np.exp(self.samples_i[i, self.ndim_blr + 2:])
             else:
@@ -521,7 +525,8 @@ class GPMC:
             # Calculate for test data:
             y_blr_test = self.predict_blr(self.X_blr_test, alpha, beta)
             resid_blr_test = self.y_test - y_blr_test
-            gp = george.GP(self.kernel, mean=np.mean(resid_blr_test))
+            #gp = george.GP(self.kernel, mean=np.mean(resid_blr_test))
+            gp = george.GP(self.kernel, mean=0.)
             try:
                 gp.compute(self.X_gp_test, sigma)
                 mu_gp_test, _ = gp.predict(resid_blr_test, self.X_gp_test)
