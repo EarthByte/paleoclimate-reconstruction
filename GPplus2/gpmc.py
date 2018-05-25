@@ -192,18 +192,18 @@ class GPMC:
         mu_blr = alpha  + np.sum(beta * X_test, axis=1)
         return mu_blr
 
-    def lnprob_gp(self, p, sigma, dropout=0.):
+    def lnprior_gp(self, p):
+        if np.any((-30 > p) + (p > 30)):
+            lnprior =  -np.inf
+        else:
+            lnprior = 0.
+        return lnprior
+
+    def lnlike_gp(self, p, sigma):
         """ Calcuates prior and likelihood of GP
         :param p: GP hyperparameters
         :param sigma: noise sigma
-        :param dropout: number of random datapoints to exclude for each iteration, default = 0 (no dropout)
         """
-        if np.any((-30 > p) + (p > 30)):
-            return -np.inf
-        if np.any((0.001 > sigma) + (sigma > 2)):
-            return -np.inf
-        else:
-            lnprior = 0.
         #Uncertainty of y:
         err_blr = sigma
         # Update the kernel and compute the lnlikelihood:
@@ -224,7 +224,7 @@ class GPMC:
                 gplnlike = gp.log_likelihood(self.residual_blr, quiet=True)
         except:
             gplnlike = -np.inf
-        return lnprior + gplnlike
+        return gplnlike
 
     def lnprior_blr(self, beta, sigma):
         """Prior for Bayesian Linear Regression 
@@ -238,7 +238,8 @@ class GPMC:
         fact1 = (beta - m) # array with len of q
         fact2 = 1./c * self.X_blr.T.dot(self.X_blr).dot(fact1) #  array with len of q
         ln_prob = -(q/2+1) * np.log(c/(c+1.)*sigma**2) - 0.5 * fact1.T.dot(fact2)/sigma**2
-        if sigma <= 0.:
+        #if sigma <= 0.:
+        if np.any((0.001 > sigma) + (sigma > 2)):
             ln_prob = - np.inf
         return ln_prob
 
@@ -265,8 +266,8 @@ class GPMC:
         p = params[self.ndim_blr+2:] 
         lnp_blr, resid_blr = self.lnprob_blr(alpha, beta, sigma)
         self.residual_blr = resid_blr
-        #return lnp_blr + self.lnprob_gp(p, sigma, 0.) 
-        return self.lnprior_blr(beta, sigma) + self.lnprob_gp(p, sigma, 0.) 
+        #return lnp_blr + self.lnlike_gp(p, sigma) 
+        return self.lnprior_blr(beta, sigma) + self.lnprior_gp(p) +  self.lnlike_gp(p, sigma) 
 
     def scale_data(self, data):
         # Scales input data with RobustScaler
