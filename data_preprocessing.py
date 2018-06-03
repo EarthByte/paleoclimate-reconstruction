@@ -246,8 +246,8 @@ ax_rainfall_mask.set_title('Annual Precipitation during Miocene')
 fig.savefig(images_folder+"map_precipitation_miocene.png", bbox_inches='tight', pad_inches=0.3)
 
 fig, ax_lograinfall = plt.subplots(figsize=(16,8))            
-cmap = sns.cubehelix_palette(8, start=0.65, rot=-0.9, light=0.9, as_cmap=True)
-ax_lograinfall = sns.heatmap(map_log10precip, cmap=cmap, cbar=True, cbar_kws={"shrink": .75}, square=True, xticklabels=False, yticklabels=False, mask=mask_exclude)
+cmap_logprecip = sns.cubehelix_palette(8, start=0.65, rot=-0.9, light=0.9, as_cmap=True)
+ax_lograinfall = sns.heatmap(map_log10precip, cmap=cmap_logprecip, cbar=True, cbar_kws={"shrink": .75}, square=True, xticklabels=False, yticklabels=False, mask=mask_exclude)
 ax_lograinfall.set_xlabel('Paleolongitude')
 ax_lograinfall.set_ylabel('Paleolatitude')
 ax_lograinfall.set_title('Annual Log10 Precipitation during Miocene')
@@ -261,7 +261,8 @@ print('Topography...')
 for idx, height in enumerate(topography_results):
     elevation_arr[idx] = height
 map_elevation = elevation_arr.reshape((nlatbins,nlonbins))
-map_elevation[unmask_deposits_shallowmarine] = 0
+map_elevation[map_elevation<0] = 0. # recalibrate to ignore shallow areas underwater
+#map_elevation[unmask_deposits_shallowmarine] = 0
 cmap_elevation = sns.diverging_palette(240, 20, s=85, l=28, n=9)
 
 fig, ax_elevation_mask = plt.subplots(figsize=(16,8))            
@@ -273,8 +274,105 @@ fig.savefig(images_folder+"map_elevation_miocene.png", bbox_inches='tight', pad_
 
 
 
+# SCATTERPLOT DEPENDENCIES: feature versus precipitation
+print("Scatterplots...")
+
+target  = map_log10precip[unmask_include].flatten()
+
+feature = map_elevation[unmask_include].flatten()
+fig, ax_precip_elev = plt.subplots(figsize=(7,7))            
+ax_precip_elev.plot(feature, target, marker='o', linestyle='', ms=2)
+ax_precip_elev.set_xlabel('Elevation')
+ax_precip_elev.set_ylabel('Log Precipitation')
+ax_precip_elev.set_title('Precipitation versus Elevation during Miocene')
+fig.savefig(images_folder+"scatter_elevation_logprecip.png", bbox_inches='tight', pad_inches=0.2)
+
+feature = map_shore_distance[unmask_include].flatten()
+fig, ax_precip_dist = plt.subplots(figsize=(7,7))            
+ax_precip_dist.plot(feature, target, marker='o', linestyle='', ms=2)
+ax_precip_dist.set_xlabel('Distance to Shore')
+ax_precip_dist.set_ylabel('Log Precipitation')
+ax_precip_dist.set_title('Precipitation versus Distance to Shore during Miocene')
+fig.savefig(images_folder+"scatter_shoredist_logprecip.png", bbox_inches='tight', pad_inches=0.2)
+
+feature = np.sin(np.radians(map_shore_direction[unmask_include].flatten()))
+fig, ax_precip_sind = plt.subplots(figsize=(7,7))            
+ax_precip_sind.plot(feature, target, marker='o', linestyle='', ms=2)
+ax_precip_sind.set_xlabel('Sin Direction to Shore')
+ax_precip_sind.set_ylabel('Log Precipitation')
+ax_precip_sind.set_title('Precipitation versus Sin of Direction to Shore during Miocene')
+fig.savefig(images_folder+"scatter_shoresind_logprecip.png", bbox_inches='tight', pad_inches=0.2)
+
+feature = np.cos(np.radians(map_shore_direction[unmask_include].flatten()))
+fig, ax_precip_cosd = plt.subplots(figsize=(7,7))            
+ax_precip_cosd.plot(feature, target, marker='o', linestyle='', ms=2)
+ax_precip_cosd.set_xlabel('Cos Direction to Shore')
+ax_precip_cosd.set_ylabel('Log Precipitation')
+ax_precip_cosd.set_title('Precipitation versus Cos of Direction to Shore during Miocene')
+fig.savefig(images_folder+"scatter_shorecosd_logprecip.png", bbox_inches='tight', pad_inches=0.2)
+
+feature = mapbin_deposits_coal[unmask_include].flatten()
+presence = ["Present" if f>0.5 else "Not found" for f in feature]
+fig, ax_precip_coal = plt.subplots(figsize=(7,7))            
+sns.violinplot(x=presence, y=target, ax=ax_precip_coal)
+#ax_precip_coal.plot(feature, target, marker='o', linestyle='', ms=2)
+ax_precip_coal.set_xlabel('Coal')
+ax_precip_coal.set_ylabel('Log Precipitation')
+ax_precip_coal.set_title('Precipitation versus Presence of Coal during Miocene')
+fig.savefig(images_folder+"scatter_coal_logprecip.png", bbox_inches='tight', pad_inches=0.2)
+
+feature = mapbin_deposits_evaporites[unmask_include].flatten()
+presence = ["Present" if f>0.5 else "Not found" for f in feature]
+fig, ax_precip_evaporites = plt.subplots(figsize=(7,7))            
+sns.violinplot(x=presence, y=target, ax=ax_precip_evaporites)
+#ax_precip_evaporites.plot(feature, target, marker='o', linestyle='', ms=2)
+ax_precip_evaporites.set_xlabel('Evaporites')
+ax_precip_evaporites.set_ylabel('Log Precipitation')
+ax_precip_evaporites.set_title('Precipitation versus Presence of Evaporites during Miocene')
+fig.savefig(images_folder+"scatter_evaporites_logprecip.png", bbox_inches='tight', pad_inches=0.2)
+
+feature = mapbin_deposits_glacial[unmask_include].flatten()
+presence = ["Present" if f>0.5 else "Not found" for f in feature]
+fig, ax_precip_glacial = plt.subplots(figsize=(7,7))            
+sns.violinplot(x=presence, y=target, ax=ax_precip_glacial)
+#ax_precip_glacial.plot(feature, target, marker='o', linestyle='', ms=2)
+ax_precip_glacial.set_xlabel('Glacial')
+ax_precip_glacial.set_ylabel('Log Precipitation')
+ax_precip_glacial.set_title('Precipitation versus Presence of Glacial during Miocene')
+fig.savefig(images_folder+"scatter_glacial_logprecip.png", bbox_inches='tight', pad_inches=0.2)
+
+# 2D scatterplot
+feature1 = map_elevation[unmask_include].flatten()
+feature2 = map_shore_distance[unmask_include].flatten()
+fig, ax_precip_featfeat = plt.subplots(figsize=(7,7))
+ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+ax_precip_featfeat.set_xlabel('Elevation')
+ax_precip_featfeat.set_ylabel('Distance to Shore')
+ax_precip_featfeat.set_title('Log10Precipitation versus Distance to Shore and Elevation')
+fig.savefig(images_folder+"scatter_elevdist_logprecip.png", bbox_inches='tight', pad_inches=0.3)
+
+feature1 = np.sin(np.radians(map_shore_direction[unmask_include].flatten()))
+feature2 = map_shore_distance[unmask_include].flatten()
+fig, ax_precip_featfeat = plt.subplots(figsize=(7,7))
+ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+ax_precip_featfeat.set_xlabel('Sin Direction to Shore')
+ax_precip_featfeat.set_ylabel('Distance to Shore')
+ax_precip_featfeat.set_title('Log10Precipitation versus Distance and Sin Direction to Shore')
+fig.savefig(images_folder+"scatter_sinddist_logprecip.png", bbox_inches='tight', pad_inches=0.3)
+
+feature1 = np.cos(np.radians(map_shore_direction[unmask_include].flatten()))
+feature2 = map_shore_distance[unmask_include].flatten()
+fig, ax_precip_featfeat = plt.subplots(figsize=(7,7))
+ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+ax_precip_featfeat.set_xlabel('Cos Direction to Shore')
+ax_precip_featfeat.set_ylabel('Distance to Shore')
+ax_precip_featfeat.set_title('Log10Precipitation versus Distance and Cos Direction to Shore')
+fig.savefig(images_folder+"scatter_cosddist_logprecip.png", bbox_inches='tight', pad_inches=0.3)
+
+
 
 # ## Reformat data for GP modelling code
+print("Reformatting data for GP modelling...")
 with open(data_folder+'precipitation_gpmodel_data.csv','wb') as csvfile:
     wr = csv.writer(csvfile)
     wr.writerow(['region_id',
