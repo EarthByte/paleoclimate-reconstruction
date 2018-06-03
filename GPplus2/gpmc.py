@@ -16,6 +16,7 @@ import george # to be be replaced soon with manual GP calculation to gain additi
 from george import kernels # replaced soon with more customizable kernels 
 import numpy as np
 from sklearn.preprocessing import RobustScaler, MinMaxScaler
+from sklearn.metrics.pairwise import rbf_kernel
 import seaborn as sns
 sns.set(font_scale=1.5)
 #np.random.seed(3121)
@@ -146,11 +147,14 @@ class GPMC:
        # X[:, 3] = x2_blr.flatten()
         # data_blr_flat = 1.2* X[:,2]  + 2.4 * X[:,3] #* np.random.randn(len(X[:,2])) * 0.6
         #data = data_spatial + data_blr
-        y = data_spatial.flatten() + data_blr.flatten() + noise * np.random.rand(nsize**2) + 5.
+        alpha_true = 5.
+        #y = alpha_true + data_spatial.flatten() + data_blr.flatten() + noise * np.random.rand(nsize**2) 
+        y = alpha_true + data_blr.flatten() + np.random.normal(0,noise,nsize**2)
         id = np.linspace(1, len(y), len(y)).astype(int)
         #Save simulated data as csv file:
-        par_array = np.vstack([id, np.log(y), x1_blr.flatten(), x2_blr.flatten(), xv.flatten(), yv.flatten()]).T
-        header = "region_id,log_crime_rate,x1,x2,centroid_x,centroid_y"
+        par_array = np.vstack([id, y, x1_blr.flatten(), x2_blr.flatten(), xv.flatten(), yv.flatten()]).T
+        header = "region_id,"+target_name+",x1,x2,centroid_x,centroid_y"
+        #header = "region_id,log_crime_rate,x1,x2,centroid_x,centroid_y"
         np.savetxt(path + 'simdata2D.csv', par_array, delimiter=",", header=header, fmt='%s', comments = '')
 
 
@@ -177,7 +181,7 @@ class GPMC:
         # Kernel for spatial 2D Gaussian Process. Default Exponential Squared Kernel. Change accordingly below.
         # Kernels are initialised with weight and length (1 by default)
         if kernelname == 'expsquared':
-            k0 = 1. * kernels.ExpSquaredKernel(1., ndim = 2)  # + kernels.WhiteKernel(1.,ndim=2)
+            k0 = 1. * kernels.ExpSquaredKernel([1.,1.], ndim = 2)  # + kernels.WhiteKernel(1.,ndim=2)
         # other possible kernels as well as combinations:
         if kernelname == 'matern32':
             k0 = 1. * kernels.Matern32Kernel(1., ndim = 2)
@@ -194,7 +198,7 @@ class GPMC:
 
     def lnprior_gp(self, p):
         if np.any((-30 > p) + (p > 30)):
-            lnprior =  -np.inf
+            lnprior = -np.inf
         else:
             lnprior = 0.
         return lnprior
@@ -223,25 +227,101 @@ class GPMC:
             else:
                 gplnlike = gp.log_likelihood(self.residual_blr, quiet=True)
         except:
+            print("Problem computing GP likelihood")
             gplnlike = -np.inf
         return gplnlike
 
-    def lnprior_blr(self, beta, sigma):
-        """Prior for Bayesian Linear Regression 
+
+    def calc_covariance_matrix(pos,p):
+        ndata = pos.shape[0]
+        mag = np.exp(p[0])
+        scx = np.exp(p[1])
+        scy = np.exp(p[2]) 
+        pos[:,0] = pos[:,0] / scx
+        pos[:,1] = pos[:,1] / scy
+        cov_SqrdExp = mag**2 * rbf_kernel(X=pos,Y=pos,gamma=0.5)
+        cov_WhiteNoise = sigma**2 * np.identity(ndata)
+        return cov_WhiteNoise + cov_SqrdExp
+
+
+    def lnlikelihood(self, resid, alpha, beta, sigma, p):
+        """ Calculates likelihood
+        :param resid: residuals from data given proposed BLR
+        :param alpha: constant
+        :param beta: coefficient parameters
+        :param sigma: noise sigma
+        :param p: GP hyperparameters
+        """
+        #y_model = alpha + np.sum(beta * self.X_blr, axis=1)
+        #residuals = (self.y - y_model)
+        residuals = resid
+        #residuals = resid[0:600]
+        covariance_matrix = calc_covariance_matrix(self.X_gp,p)
+        #covariance_matrix = calc_covariance_matrix(self.X_gp[0:600,:],p)
+        def calc_loglikelihood(res, cov):
+            (sign,logdetcov) = np.linalg.slogdet(cov) #sign should be positive
+            CinvRes = np.linalg.solve(cov,res)
+            return -0.5 * (logdetcov + res.T.dot(CinvRes) + 2 * np.log(2 * np.pi))
+            #return -0.5 * (logdetcov + res.T.dot(np.linalg.inv(cov)).dot(res) + 2 * np.log(2 * np.pi))
+        try: 
+            loglikelihood = calc_loglikelihood(residuals, covariance_matrix)
+            lnlike = loglikelihood.sum()
+        except:
+            print("Problem computing likelihood")
+            lnlike = -np.inf
+        return lnlike
+
+
+    def lnprior_sigma(self, sigma):
+        """
+        Prior for gaussian noise
+        :param sigma: noise sigma
+        """
+        if np.any((0.01 > sigma) + (sigma > 2)):
+            ln_prob = - np.inf
+        else:
+            type='uniform'
+            if(type=='uniform'):
+                ln_prob = 0.
+            elif(type=='separable'):
+                ln_prob = ln_prob + np.log(2./sigma) # independent sigma prior
+        return ln_prob
+
+
+    def lnprior_blr(self, alpha, beta, sigma):
+        """
+        Prior for Bayesian Linear Regression 
         :param beta: coefficient parameters
         :param sigma: noise sigma
         """
         # log of prior for BLR; see paper.
-        q = len(beta)  # length of all features
-        c = self.X_blr.shape[0] # length of data points
-        m = np.linalg.pinv(self.X_blr.T.dot(self.X_blr)).dot(self.X_blr.T.dot(self.y)) # array with len of q
-        fact1 = (beta - m) # array with len of q
-        fact2 = 1./c * self.X_blr.T.dot(self.X_blr).dot(fact1) #  array with len of q
-        ln_prob = -(q/2+1) * np.log(c/(c+1.)*sigma**2) - 0.5 * fact1.T.dot(fact2)/sigma**2
         #if sigma <= 0.:
-        if np.any((0.001 > sigma) + (sigma > 2)):
+        if np.any((0.01 > sigma) + (sigma > 2)):
             ln_prob = - np.inf
+        elif np.any((-5 > alpha) + (alpha > 5)):
+            ln_prob = - np.inf
+        elif np.any((-10 > beta) + (beta > 10)):
+            ln_prob = -np.inf
+        else:
+            type='separable'
+            if(type=='uniform'):
+                ln_prob = 0.
+            elif(type=='separable'):
+                lnp_sigma = np.log(2./sigma) # independent sigma prior
+                lnp_betas = -0.5 * (beta.T.dot(beta)) / np.var(self.y)
+                ln_prob = lnp_sigma + lnp_betas
+            elif(type=='original'):
+                q = len(beta)  # length of all features
+                c = self.X_blr.shape[0] # length of data points
+                XTX = self.X_blr.T.dot(self.X_blr)
+                XTy = self.X_blr.T.dot(self.y)
+                m = np.linalg.solve(XTX,XTy)
+                #m = np.linalg.pinv(XTX).dot(XTy) # array with len of q
+                fact1 = (beta - m) # array with len of q
+                fact2 = 1./c * self.X_blr.T.dot(self.X_blr).dot(fact1) #  array with len of q
+                ln_prob = -(q/2+1) * np.log(c/(c+1.)*sigma**2) - 0.5 * fact1.T.dot(fact2)/sigma**2
         return ln_prob
+
 
     def lnlikelihood_blr(self, alpha, beta, sigma):
         """ Returns Log Likelihood of BLR and residual (for updating GP)
@@ -253,21 +333,28 @@ class GPMC:
         resid = (self.y - y_model)
         return -0.5 * np.sum(np.log(2 * np.pi * sigma ** 2) + resid ** 2 / sigma ** 2), resid
 
+
     def lnprob_blr(self, alpha, beta, sigma):
         # Returns sum of BLR Likelihood and Prior as well as residual
         lnlik_blr, resid = self.lnlikelihood_blr(alpha, beta, sigma)
-        return self.lnprior_blr(beta, sigma) + lnlik_blr, resid
+        return self.lnprior_blr(alpha, beta, sigma) + lnlik_blr, resid
+
 
     def lnprob(self, params):
         # Returns the combined log posterior of BLR and GP
         alpha = params[0] # BLR constant
         sigma = params[1] # Sigma
-        beta = params[2:self.ndim_blr+2] 
-        p = params[self.ndim_blr+2:] 
+        beta = params[2:self.ndim_blr+2]
+        p = params[self.ndim_blr+2:]
         lnp_blr, resid_blr = self.lnprob_blr(alpha, beta, sigma)
         self.residual_blr = resid_blr
-        #return lnp_blr + self.lnlike_gp(p, sigma) 
-        return self.lnprior_blr(beta, sigma) + self.lnprior_gp(p) +  self.lnlike_gp(p, sigma) 
+        #return lnp_blr
+        #return lnp_blr + self.lnprior_gp(p)
+        #return lnp_blr + self.lnprior_gp(p) + self.lnlike_gp(p, sigma) 
+        #return self.lnprior_blr(alpha, beta, sigma) + self.lnprior_gp(p) + self.lnlike_gp(p, sigma)
+        #return self.lnprior_blr(alpha, beta, sigma) + self.lnprior_gp(p) + self.lnlike_gp(p, sigma) 
+        return self.lnprior_blr(alpha, beta, sigma) + self.lnprior_gp(p) + self.lnlikelihood(resid_blr, alpha, beta, sigma, p) 
+
 
     def scale_data(self, data):
         # Scales input data with RobustScaler
@@ -302,8 +389,12 @@ class GPMC:
             p0_gp = self.kernel.get_parameter_vector()
         alpha0 = np.mean(self.y)
         beta0 = np.zeros((self.ndim_blr))
-        sigma0 = np.std(self.y)
+        sigma0 = np.std(self.y)/10.
         p0_comb = np.hstack((alpha0, sigma0, beta0, p0_gp))
+        print("Initial proposal (alpha, sigma, beta vec, GP vec):")
+        print(p0_comb)
+        print("Initial log posterior function call")
+        print(self.lnprob(p0_comb))
         p0 = [p0_comb + 1e-4 * np.random.randn(self.ndim) for i in range(self.nwalkers)]
 
         print("Estimating MCMC time...")
@@ -315,9 +406,17 @@ class GPMC:
         print('Estimated time till completed: {} seconds '.format(burn_time * (self.niter+nburn) / 10.))
 
         print("Running burn-in...")
-        p0, _, state = sampler.run_mcmc(p0, nburn)
-        # Reset the chain to remove the burn-in samples.
-        sampler.reset()
+        p0, lp, state = sampler.run_mcmc(p0, int(nburn/2))
+        p0_best = p0[np.argmax(lp)]
+        print("Post-burn-in proposal (alpha, sigma, beta vec, GP vec):")
+        print(p0_best)
+        print("Post-burn-in log posterior function call")
+        print(self.lnprob(p0_best))
+        p0 = p0_best + 1e-8*np.random.randn(self.nwalkers, self.ndim)
+        sampler.reset()         # Reset the chain to remove the burn-in samples.
+        p0, lp, state = sampler.run_mcmc(p0, int(nburn/2))
+        sampler.reset()         # Reset the chain to remove the burn-in samples.
+
 
         print("Running MCMC ...")
         pos, prob, state = sampler.run_mcmc(p0, self.niter, rstate0=state)
@@ -328,8 +427,8 @@ class GPMC:
         self.sampler_chain = sampler.chain
         self.sampler_flatchain = sampler.flatchain
         maxprob_index = np.argmax(prob)
-        self.pos_fit = pos
-        self.prob_fit = prob
+        #self.pos_fit = pos
+        #self.prob_fit = prob
         # save parameters with largest probability:
         self.params_fit = pos[maxprob_index]
         self.params_mean = np.mean(pos, axis=0)
@@ -342,29 +441,31 @@ class GPMC:
         # save standard deviation:
         self.errors_fit = np.asarray([sampler.flatchain[:, i].std() for i in range(self.ndim)])
         # save parameters:
-        self.alpha_fit, self.alpha_err = self.params_fit[0], self.errors_fit[0]
-        self.sigma_fit, self.sigma_err = self.params_fit[1], self.errors_fit[1]
-        self.beta_fit, self.beta_err = self.params_fit[2:self.ndim_blr + 2], self.errors_fit[2:self.ndim_blr + 2]
-        p_fit, p_err = self.params_fit[self.ndim_blr + 2:], self.errors_fit[self.ndim_blr + 2:]
+        self.alpha_fit, self.alpha_err = self.params_50per[0], self.errors_fit[0]
+        self.sigma_fit, self.sigma_err = self.params_50per[1], self.errors_fit[1]
+        self.beta_fit, self.beta_err = self.params_50per[2:self.ndim_blr + 2], self.errors_fit[2:self.ndim_blr + 2]
+        p_fit, p_err = self.params_50per[self.ndim_blr + 2:], self.errors_fit[self.ndim_blr + 2:]
         self.beta_fit = self.beta_fit 
 
         # Calculate models and residuals for train data
         self.mu_blr = self.predict_blr(self.X_blr, self.alpha_fit, self.beta_fit) # BLR Model 
         self.residual_blr = (self.y - self.mu_blr)
-        self.mu_blr = self.mu_blr 
-        self.residual_blr = self.residual_blr 
+        """
         #gp = george.GP(self.kernel, mean=np.mean(self.residual_blr))
         gp = george.GP(self.kernel, mean=0.)
         if george.__version__ < '0.3.0':
             gp.kernel.pars = np.exp(p_fit)
-            self.gp_fit = gp.kernel.pars
         else:
             gp.kernel.set_parameter_vector(p_fit)
-            self.gp_fit = gp.kernel.get_parameter_vector()
         gp.compute(self.X_gp, self.sigma_fit)
         self.mu_gp, cov_gp = gp.predict(self.residual_blr, self.X_gp) # GP Model
+        #self.mu_gp, cov_gp = gp.predict(self.y, self.X_gp) # GP Model
+        """
+        cov_gp = calc_covariance_matrix(self.X_gp,p_fit)
         self.std_gp = np.sqrt(np.diag(cov_gp)) # standard deviation of GP
-        self.y_model = self.mu_gp + self.mu_blr # Final Model 
+        #self.y_model = self.mu_gp + self.mu_blr # Final Model 
+        self.y_model = self.mu_blr # Final Model 
+        #self.y_model = self.mu_gp
 
         # Print some MCMC results and additionally saved in text file:
         print("---- MCMC Results and Parameters ----")
@@ -373,34 +474,39 @@ class GPMC:
         self.results_file.write('Mean acceptance fraction: {0} \n'.format(np.mean(af)))
         print("Kernel: ", gp.kernel)
         self.results_file.write('Kernel: {0} \n'.format(gp.kernel))
-        print("alpha, err:", round(self.alpha_fit,2), round(self.alpha_err,2))
-        self.results_file.write('alpha: {0} , err: {1} \n'.format(round(self.alpha_fit,2), round(self.alpha_err,2)))
+        print("alpha, err:", round(self.alpha_fit,3), round(self.alpha_err,3))
+        self.results_file.write('alpha: {0} , err: {1} \n'.format(round(self.alpha_fit,3), round(self.alpha_err,3)))
         for i in range(len(self.beta_fit)):
-            print('beta'+str(i)+' , err:', round(self.beta_fit[i],2), round(self.beta_err[i],2))
-            self.results_file.write('beta {0}: {1} , err: {2} \n'.format(str(i), round(self.beta_fit[i],2), round(self.beta_err[i],2)))
-        print('sigma, err:', round(self.sigma_fit,2), round(self.sigma_err,2))
-        self.results_file.write('sigma: {0} , err: {1} \n'.format(round(self.sigma_fit,2), round(self.sigma_err,2)))
-        print("Model lnlikelihood: ", prob[maxprob_index])
-        self.results_file.write('Model lnlikelihood: {0} \n'.format(prob[maxprob_index]))
+            print('beta'+str(i)+' , err:', round(self.beta_fit[i],3), round(self.beta_err[i],3))
+            self.results_file.write('beta {0}: {1} , err: {2} \n'.format(str(i), round(self.beta_fit[i],3), round(self.beta_err[i],3)))
+        print('sigma, err:', round(self.sigma_fit,3), round(self.sigma_err,3))
+        self.results_file.write('sigma: {0} , err: {1} \n'.format(round(self.sigma_fit,3), round(self.sigma_err,3)))
+        #print("Model lnlikelihood: ", prob[maxprob_index])
+        #self.results_file.write('Model lnlikelihood: {0} \n'.format(prob[maxprob_index]))
         print("Std GP: ", np.mean(self.std_gp))
         self.results_file.write('Std GP: {0} \n'.format(np.mean(self.std_gp)))
+        """
         if george.__version__ < '0.3.0':
             print("GP lnlikelihood:", gp.lnlikelihood(self.y))
             self.results_file.write('GP lnlikelihood: {0} \n'.format(gp.lnlikelihood(self.y)))
         else:
             print("GP lnlikelihood:", gp.log_likelihood(self.y))
             self.results_file.write('GP lnlikelihood: {0} \n'.format(gp.log_likelihood(self.y)))
-            
-
+        """
         # Calculate models and residuals for test data
         if split_traintest > 0.:
             self.mu_blr_test = self.predict_blr(self.X_blr_test, self.alpha_fit, self.beta_fit)  # BLR Model
             self.residual_blr_test = (self.y_test - self.mu_blr_test)
+            """
             #gp = george.GP(self.kernel, mean=np.mean(self.residual_blr_test))
             gp = george.GP(self.kernel, mean=0.)
-            gp.compute(self.X_gp_test, self.sigma_fit)
-            self.mu_gp_test, _ = gp.predict(self.residual_blr_test, self.X_gp_test)  # GP Model 
-            self.y_model_test = self.mu_gp_test + self.mu_blr_test  # Final Model 
+            gp.compute(self.X_gp, self.sigma_fit)
+            #self.mu_gp_test, _ = gp.predict(self.residual_blr_test, self.X_gp_test)  # GP Model 
+            self.mu_gp_test, _ = gp.predict(self.residual_blr, self.X_gp_test)  # GP Model 
+            """
+            #self.y_model_test = self.mu_gp_test + self.mu_blr_test  # Final Model 
+            self.y_model_test = self.mu_blr_test  # Final Model 
+            #self.y_model_test = self.mu_gp_test  # Final Model 
         else:
             self.mu_blr_test, self.mu_gp_test, self.residual_blr_test, self.y_model_test = np.zeros(4)
 
@@ -424,8 +530,8 @@ class GPMC:
         print('RMSE test: ', round(rmse_test, 3))
         self.results_file.write('RMSE train: {0} \n'.format(round(rmse_train,3)))
         self.results_file.write('RMSE test: {0} \n'.format(round(rmse_test,3)))
-        #print('RMSE: ', round(np.sqrt(np.sum(self.residual**2) / len(self.residual)),2))
-        #self.results_file.write('Mean abs Residual: {0} \n'.format(round(np.sqrt(np.sum(self.residual**2) / len(self.residual)),2)))
+        #print('RMSE: ', round(np.sqrt(np.sum(self.residual**2) / len(self.residual)),3))
+        #self.results_file.write('Mean abs Residual: {0} \n'.format(round(np.sqrt(np.sum(self.residual**2) / len(self.residual)),3)))
         # self.results_file.close()
         #Optional: make residual map of spatial GP component:
         if plot3d:
@@ -437,7 +543,6 @@ class GPMC:
             ax.set_xlabel('X Norm')
             ax.set_ylabel('Y Norm')
             ax.set_zlabel('Residual '+ target_desc)
-
 
     def create_param_csv(self, par_list, icross = 0):
         """ stores model parameter stats and sampler chain
@@ -474,7 +579,7 @@ class GPMC:
 
     def vis_mc(self):
         # Basic plot data and model, works so far only with  testdata
-        self.plot_2D(self.X_gp, self.model_gp, self.data_gp)
+        #self.plot_2D(self.X_gp, self.model_gp, self.data_gp)
         # calculate residual map
         res_map = (self.data - self.model) / self.data
         plt.figure(3)
@@ -511,28 +616,37 @@ class GPMC:
             # Calculate for train data set:
             y_blr = self.predict_blr(self.X_blr, alpha, beta)
             resid_blr = self.y - y_blr
+            """
             #gp = george.GP(self.kernel, mean=np.mean(resid_blr))
             gp = george.GP(self.kernel, mean=0.)
             if george.__version__ < '0.3.0':
                 gp.kernel.pars = np.exp(self.samples_i[i, self.ndim_blr + 2:])
             else:
                 gp.kernel.set_parameter_vector(self.samples_i[i, self.ndim_blr + 2:])
+            """
             try:
                 gp.compute(self.X_gp, sigma)
                 mu_gp, _ = gp.predict(resid_blr, self.X_gp)
                 self.mu_i[i, :] = y_blr + mu_gp
+                #mu_gp, _ = gp.predict(self.y, self.X_gp)
+                #self.mu_i[i, :] = mu_gp
             except:
                 self.mu_i[i,:] = y_blr
             self.residual_i[i] = np.sum(self.y - self.mu_i[i, :])
             # Calculate for test data:
             y_blr_test = self.predict_blr(self.X_blr_test, alpha, beta)
             resid_blr_test = self.y_test - y_blr_test
+            """
             #gp = george.GP(self.kernel, mean=np.mean(resid_blr_test))
             gp = george.GP(self.kernel, mean=0.)
+            """
             try:
-                gp.compute(self.X_gp_test, sigma)
-                mu_gp_test, _ = gp.predict(resid_blr_test, self.X_gp_test)
+                gp.compute(self.X_gp, sigma)
+                #mu_gp_test, _ = gp.predict(resid_blr_test, self.X_gp_test)
+                mu_gp_test, _ = gp.predict(resid_blr, self.X_gp_test)
                 self.mu_i_test[i, :] = y_blr_test + mu_gp_test
+                #mu_gp_test, _ = gp.predict(self.y_test, self.X_gp_test)
+                #self.mu_i_test[i, :] = mu_gp_test
             except:
                 self.mu_i_test[i, :] = y_blr_test
         self.perc2_area = np.asarray([np.percentile(self.mu_i[:, i], 2) for i in range(len(self.y))]) # rounded from 2.3
@@ -606,7 +720,7 @@ class GPMC:
         plt.plot(x_range, y_range, '.', alpha=0.0)
         plt.plot(self.y, self.y_model, 'o', c='b',label='Train', alpha=0.5)
         plt.plot(self.y_test, self.y_model_test, 'o', c='r',label='Test', alpha=0.5)
-        plt.plot(self.y, self.y, 'k--') # perfect prediction
+        plt.plot(self.y_model, self.y_model, 'k--', label='Perfect Prediction')
         plt.xlabel('Observed y')
         plt.ylabel('Predicted y')
         plt.title('Predicted vs Ground Truth')
@@ -640,6 +754,13 @@ class GPMC:
         plt.ylabel('Residual')
         plt.draw()
         plt.savefig(self.outmcmc + 'Model_Residual_1d.png')
+        plt.clf()
+        plt.plot(self.y_model_test, self.residual_test, 'o')
+        plt.plot([min(self.y_model_test),max(self.y_model_test)],[0,0],'k--')
+        plt.xlabel('Test Predicted '+ target_desc)
+        plt.ylabel('Test Residual')
+        plt.draw()
+        plt.savefig(self.outmcmc + 'Model_Residual_Test_1d.png')
 
 
     def plot_diagr(self, namelist):
@@ -677,7 +798,7 @@ class GPMC:
         import corner
         outdir = self.outmcmc
         samples = self.sampler_chain[:, :, :].reshape((-1, self.ndim))
-        fig = corner.corner(samples, labels=par_list, truths=self.params_fit)
+        fig = corner.corner(samples, labels=par_list, truths=self.params_50per)
         fig.savefig(outdir + "cornerplot_all.png")
 
     def plot_niter(self, par_list):
