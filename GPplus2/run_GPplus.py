@@ -76,7 +76,7 @@ else:
 print("Running MCMC sampler on spatial plus feature data")
 
 # make parameter list description
-GP_par_names = ["GP1", "GP2"]
+GP_par_names = ["GP1", "GP2", "GP3"]
 par_list = np.concatenate((["Alpha", "Sigma"], x_feature_desc, GP_par_names))
 
 # Store numpy array of GP coordinates
@@ -133,7 +133,7 @@ gpmc.plot_diagr(x_feature_desc)
 # 6) save parameter stats as csv
 gpmc.create_param_csv(par_list)
 gpmc.create_scaling_csv(x_feature_names, x_norm_min, x_norm_range, 'BLR')
-gpmc.create_scaling_csv(GP_par_names, x_gp_norm_min, x_gp_norm_range, 'GP')
+gpmc.create_scaling_csv(['X coords','Y coords'], x_gp_norm_min, x_gp_norm_range, 'GP')
 
 # 7) Create maps, can take some time and disk space.
 if create_maps and not simulate and (nfold_cross == 1):
