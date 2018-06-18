@@ -16,7 +16,7 @@ import george # to be be replaced soon with manual GP calculation to gain additi
 from george import kernels # replaced soon with more customizable kernels 
 import numpy as np
 from sklearn.preprocessing import RobustScaler, MinMaxScaler
-from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.metrics.pairwise import pairwise_distances
 import seaborn as sns
 sns.set(font_scale=1.5)
 #np.random.seed(3121)
@@ -44,6 +44,8 @@ class GPMC:
         :param split_traintest: fraction of test data ranging from 0 (only training) to 0.5 (50/50 train/test)
         """
         self.y = []
+        self.ndata = 0.
+        self.y_std = 0.
         self.X_gp = []
         self.X_blr = []
         self.x_min = 0.
@@ -69,11 +71,15 @@ class GPMC:
         if not os.path.exists(outmcmc):
             os.makedirs(outmcmc)
         self.results_file = open(outmcmc+'mcmc_results.txt', "w")
+        self.ymodel_mean = []
+        self.ymodel_std  = []
         if (split_traintest > 0.) & (split_traintest <=0.5):
             self.y_test = []
             self.x_gp_test = []
             self.x_blr_test = []
             self.y_model_test = []
+            self.ymodel_mean_test = []
+            self.ymodel_std_test  = []
             self.residual_blr_test = []
         elif split_traintest == 0:
             print("Warning: only training data, no validation on test set.")
@@ -94,8 +100,12 @@ class GPMC:
         """
         # train data:
         self.y = y
+        self.y_std = np.std(y)
+        self.ndata = len(y)
         self.X_gp = X_gp # 2-dimensions required
         self.X_blr = X_blr # can be multiple dimensions
+        #dist_matrix_dim1 = pairwise_distances(self.X_gp[:,0])
+        #self.maxL_dim1 = np.log(min(dist_matrix_dim1))
         # test data:
         self.y_test = y_test
         self.X_gp_test = X_gp_test
@@ -181,7 +191,7 @@ class GPMC:
         # Kernel for spatial 2D Gaussian Process. Default Exponential Squared Kernel. Change accordingly below.
         # Kernels are initialised with weight and length (1 by default)
         if kernelname == 'expsquared':
-            k0 = 1. * kernels.ExpSquaredKernel([1.,1.], ndim = 2)  # + kernels.WhiteKernel(1.,ndim=2)
+            k0 = 0.1 * kernels.ExpSquaredKernel([0.1,0.1], ndim = 2)  # + kernels.WhiteKernel(1.,ndim=2)
         # other possible kernels as well as combinations:
         if kernelname == 'matern32':
             k0 = 1. * kernels.Matern32Kernel(1., ndim = 2)
@@ -197,7 +207,15 @@ class GPMC:
         return mu_blr
 
     def lnprior_gp(self, p):
-        if np.any((-30 > p) + (p > 30)):
+        if np.any((2.*np.log(self.y_std)-7. > p[0]) + (p[0] > 2.*np.log(self.y_std)+1.)): # amplitude (min-GP1=log(min-sigma**2), max-GP1=log(max-sigma**2))
+            lnprior = -np.inf
+        elif np.any((-4.6 > p[1]) + (p[1] > 0.)): # latitude length scale (min = log(1.5/145))
+        #elif np.any((-4. > p[1]) + (p[1] > 0.)): # latitude length scale (min = log(2.5/140))
+        #elif np.any((-3.3 > p[1]) + (p[1] > 0.)): # latitude length scale (min = log(5/135))
+            lnprior = -np.inf
+        elif np.any((-5.5 > p[2]) + (p[2] > 0.)): # longitude length scale (min = log(1.5/360))
+        #elif np.any((-5. > p[2]) + (p[2] > 0.)): # longitude length scale (min = log(2.6/360))
+        #elif np.any((-4.28 > p[2]) + (p[2] > 0.)): # longitude length scale (min = log(5/360))
             lnprior = -np.inf
         else:
             lnprior = 0.
@@ -232,16 +250,22 @@ class GPMC:
         return gplnlike
 
 
-    def calc_covariance_matrix(pos,p):
-        ndata = pos.shape[0]
+    def calc_covariance_matrix(self, data, p, sigma):
+        pos = data.copy()
         mag = np.exp(p[0])
         scx = np.exp(p[1])
         scy = np.exp(p[2]) 
         pos[:,0] = pos[:,0] / scx
         pos[:,1] = pos[:,1] / scy
-        cov_SqrdExp = mag**2 * rbf_kernel(X=pos,Y=pos,gamma=0.5)
+        #pos[:,1] = pos[:,1] / scx # only one length scale
+        dist_matrix = pairwise_distances(pos)
+        cov_SqrdExp = mag * np.exp(-0.5*dist_matrix**2)
+        #print("Squared Exponential")
+        #print(cov_SqrdExp)
+        ndata = pos.shape[0]
         cov_WhiteNoise = sigma**2 * np.identity(ndata)
         return cov_WhiteNoise + cov_SqrdExp
+        #return cov_WhiteNoise # for BLR only
 
 
     def lnlikelihood(self, resid, alpha, beta, sigma, p):
@@ -255,19 +279,18 @@ class GPMC:
         #y_model = alpha + np.sum(beta * self.X_blr, axis=1)
         #residuals = (self.y - y_model)
         residuals = resid
-        #residuals = resid[0:600]
-        covariance_matrix = calc_covariance_matrix(self.X_gp,p)
-        #covariance_matrix = calc_covariance_matrix(self.X_gp[0:600,:],p)
-        def calc_loglikelihood(res, cov):
-            (sign,logdetcov) = np.linalg.slogdet(cov) #sign should be positive
-            CinvRes = np.linalg.solve(cov,res)
-            return -0.5 * (logdetcov + res.T.dot(CinvRes) + 2 * np.log(2 * np.pi))
-            #return -0.5 * (logdetcov + res.T.dot(np.linalg.inv(cov)).dot(res) + 2 * np.log(2 * np.pi))
-        try: 
-            loglikelihood = calc_loglikelihood(residuals, covariance_matrix)
-            lnlike = loglikelihood.sum()
+        covariance_matrix = self.calc_covariance_matrix(self.X_gp, p, sigma)
+        #lower = np.linalg.cholesky(covariance_matrix)
+        #if(np.any(np.diag(lower)==0.)):
+        #    print("Found zeros in the diagonal elements of the lower-triangular cholesky decomposition of the covariane matrix")
+        try:
+            (sign,logdetcov) = np.linalg.slogdet(covariance_matrix) #sign should be positive
+            CinvRes = np.linalg.solve(covariance_matrix,residuals)
+            lnlike =  -0.5 * (logdetcov + residuals.T.dot(CinvRes) + 2*np.log(2*np.pi))
         except:
             print("Problem computing likelihood")
+            print("Params (alpha, sigma, beta vec, GP vec):")
+            print(np.hstack((alpha, sigma, beta, p)))
             lnlike = -np.inf
         return lnlike
 
@@ -277,14 +300,14 @@ class GPMC:
         Prior for gaussian noise
         :param sigma: noise sigma
         """
-        if np.any((0.01 > sigma) + (sigma > 2)):
+        if np.any((1e-3 > sigma) + (sigma > self.y_std)):
             ln_prob = - np.inf
         else:
             type='uniform'
             if(type=='uniform'):
                 ln_prob = 0.
             elif(type=='separable'):
-                ln_prob = ln_prob + np.log(2./sigma) # independent sigma prior
+                ln_prob = ln_prob - np.log(sigma) # independent sigma prior
         return ln_prob
 
 
@@ -296,10 +319,10 @@ class GPMC:
         """
         # log of prior for BLR; see paper.
         #if sigma <= 0.:
-        if np.any((0.01 > sigma) + (sigma > 2)):
+        if np.any((1e-3 > sigma) + (sigma > self.y_std)):
             ln_prob = - np.inf
-        elif np.any((-5 > alpha) + (alpha > 5)):
-            ln_prob = - np.inf
+        #elif np.any((-5 > alpha) + (alpha > 5)):
+        #    ln_prob = - np.inf
         elif np.any((-10 > beta) + (beta > 10)):
             ln_prob = -np.inf
         else:
@@ -307,11 +330,13 @@ class GPMC:
             if(type=='uniform'):
                 ln_prob = 0.
             elif(type=='separable'):
-                lnp_sigma = np.log(2./sigma) # independent sigma prior
+                lnp_sigma = - np.log(sigma) # independent sigma prior: Jeffrey's on sigma
+                #lnp_sigma = 0.2*np.log(sigma) - sigma # independent sigma prior
                 lnp_betas = -0.5 * (beta.T.dot(beta)) / np.var(self.y)
                 ln_prob = lnp_sigma + lnp_betas
             elif(type=='original'):
-                q = len(beta)  # length of all features
+                q = self.ndim_blr
+                #q = len(beta)  # length of all features
                 c = self.X_blr.shape[0] # length of data points
                 XTX = self.X_blr.T.dot(self.X_blr)
                 XTy = self.X_blr.T.dot(self.y)
@@ -346,13 +371,11 @@ class GPMC:
         sigma = params[1] # Sigma
         beta = params[2:self.ndim_blr+2]
         p = params[self.ndim_blr+2:]
-        lnp_blr, resid_blr = self.lnprob_blr(alpha, beta, sigma)
-        self.residual_blr = resid_blr
-        #return lnp_blr
-        #return lnp_blr + self.lnprior_gp(p)
-        #return lnp_blr + self.lnprior_gp(p) + self.lnlike_gp(p, sigma) 
+        lnpost_blr, resid_blr = self.lnprob_blr(alpha, beta, sigma)
+        #self.residual_blr = resid_blr
+        #return lnpost_blr + self.lnprior_gp(p) # just keep GP hyperparameters under control
+        #return lnpost_blr + self.lnprior_gp(p) + self.lnlike_gp(p, sigma) 
         #return self.lnprior_blr(alpha, beta, sigma) + self.lnprior_gp(p) + self.lnlike_gp(p, sigma)
-        #return self.lnprior_blr(alpha, beta, sigma) + self.lnprior_gp(p) + self.lnlike_gp(p, sigma) 
         return self.lnprior_blr(alpha, beta, sigma) + self.lnprior_gp(p) + self.lnlikelihood(resid_blr, alpha, beta, sigma, p) 
 
 
@@ -374,6 +397,8 @@ class GPMC:
         :param nburn: Number of iterations for burn-in phase, recommend at least 100
         :return: None; updates and saves class variables
         """
+        print("Data Shape")
+        print(self.X_gp.shape)
         self.kernel = self.kernel_gp(kernelname = kernelname)
         self.ndim_gp = len(self.kernel) # same as gpdim
         self.residual_blr = np.zeros_like(self.y)
@@ -382,14 +407,18 @@ class GPMC:
         self.niter = niter
         self.ndim = np.int(self.ndim_gp + self.ndim_blr + 2)
         sampler = emcee.EnsembleSampler(self.nwalkers, self.ndim, self.lnprob)
+        """
         # Initialize the walkers:
         if george.__version__ < '0.3.0':
             p0_gp = np.log(self.kernel.pars)
         else: 
             p0_gp = self.kernel.get_parameter_vector()
+        """
         alpha0 = np.mean(self.y)
         beta0 = np.zeros((self.ndim_blr))
-        sigma0 = np.std(self.y)/10.
+        sigma0 = self.y_std/2.
+        p0_gp = -1.*np.ones((self.ndim_gp))
+        p0_gp[0] = 2.*np.log(sigma0/4.)
         p0_comb = np.hstack((alpha0, sigma0, beta0, p0_gp))
         print("Initial proposal (alpha, sigma, beta vec, GP vec):")
         print(p0_comb)
@@ -406,16 +435,19 @@ class GPMC:
         print('Estimated time till completed: {} seconds '.format(burn_time * (self.niter+nburn) / 10.))
 
         print("Running burn-in...")
-        p0, lp, state = sampler.run_mcmc(p0, int(nburn/2))
+        #print("Running burn-in 1 of 2...")
+        #p0, lp, state = sampler.run_mcmc(p0, int(nburn/2))
+        p0, lp, state = sampler.run_mcmc(p0, nburn)
         p0_best = p0[np.argmax(lp)]
-        print("Post-burn-in proposal (alpha, sigma, beta vec, GP vec):")
+        print("Post-burn-in re-proposal (alpha, sigma, beta vec, GP vec):")
         print(p0_best)
         print("Post-burn-in log posterior function call")
         print(self.lnprob(p0_best))
-        p0 = p0_best + 1e-8*np.random.randn(self.nwalkers, self.ndim)
         sampler.reset()         # Reset the chain to remove the burn-in samples.
-        p0, lp, state = sampler.run_mcmc(p0, int(nburn/2))
-        sampler.reset()         # Reset the chain to remove the burn-in samples.
+        #print("Running burn-in 2 of 2...")
+        #p0 = p0_best + 1e-8*np.random.randn(self.nwalkers, self.ndim)
+        #p0, lp, state = sampler.run_mcmc(p0, int(nburn/2))
+        #sampler.reset()         # Reset the chain to remove the burn-in samples.
 
 
         print("Running MCMC ...")
@@ -444,8 +476,13 @@ class GPMC:
         self.alpha_fit, self.alpha_err = self.params_50per[0], self.errors_fit[0]
         self.sigma_fit, self.sigma_err = self.params_50per[1], self.errors_fit[1]
         self.beta_fit, self.beta_err = self.params_50per[2:self.ndim_blr + 2], self.errors_fit[2:self.ndim_blr + 2]
-        p_fit, p_err = self.params_50per[self.ndim_blr + 2:], self.errors_fit[self.ndim_blr + 2:]
+        self.p_fit, self.p_err = self.params_50per[self.ndim_blr + 2:], self.errors_fit[self.ndim_blr + 2:]
         self.beta_fit = self.beta_fit 
+
+        print("Median aposteriori params (alpha, sigma, beta vec, GP vec):")
+        print(self.params_50per)
+        print("Median aposteriori log posterior function call")
+        print(self.lnprob(np.hstack((self.params_50per))))
 
         # Calculate models and residuals for train data
         self.mu_blr = self.predict_blr(self.X_blr, self.alpha_fit, self.beta_fit) # BLR Model 
@@ -454,17 +491,20 @@ class GPMC:
         #gp = george.GP(self.kernel, mean=np.mean(self.residual_blr))
         gp = george.GP(self.kernel, mean=0.)
         if george.__version__ < '0.3.0':
-            gp.kernel.pars = np.exp(p_fit)
+            gp.kernel.pars = np.exp(self.p_fit)
         else:
-            gp.kernel.set_parameter_vector(p_fit)
+            gp.kernel.set_parameter_vector(self.p_fit)
         gp.compute(self.X_gp, self.sigma_fit)
         self.mu_gp, cov_gp = gp.predict(self.residual_blr, self.X_gp) # GP Model
         #self.mu_gp, cov_gp = gp.predict(self.y, self.X_gp) # GP Model
         """
-        cov_gp = calc_covariance_matrix(self.X_gp,p_fit)
+        cov_gp = self.calc_covariance_matrix(self.X_gp, self.p_fit, self.sigma_fit)
+        Lower = np.linalg.cholesky(cov_gp)
+        self.y_model = self.mu_blr + Lower.T.dot(np.random.normal(0,1,self.ndata))
         self.std_gp = np.sqrt(np.diag(cov_gp)) # standard deviation of GP
+        #self.y_model = np.random.multivariate_normal(self.mu_blr, cov_gp)
         #self.y_model = self.mu_gp + self.mu_blr # Final Model 
-        self.y_model = self.mu_blr # Final Model 
+        #self.y_model = self.mu_blr # Final Model 
         #self.y_model = self.mu_gp
 
         # Print some MCMC results and additionally saved in text file:
@@ -472,8 +512,10 @@ class GPMC:
         self.results_file.write('---- MCMC Results and Parameters ----\n')
         print("Mean acceptance fraction:", np.mean(af))
         self.results_file.write('Mean acceptance fraction: {0} \n'.format(np.mean(af)))
+        """
         print("Kernel: ", gp.kernel)
         self.results_file.write('Kernel: {0} \n'.format(gp.kernel))
+        """
         print("alpha, err:", round(self.alpha_fit,3), round(self.alpha_err,3))
         self.results_file.write('alpha: {0} , err: {1} \n'.format(round(self.alpha_fit,3), round(self.alpha_err,3)))
         for i in range(len(self.beta_fit)):
@@ -481,6 +523,9 @@ class GPMC:
             self.results_file.write('beta {0}: {1} , err: {2} \n'.format(str(i), round(self.beta_fit[i],3), round(self.beta_err[i],3)))
         print('sigma, err:', round(self.sigma_fit,3), round(self.sigma_err,3))
         self.results_file.write('sigma: {0} , err: {1} \n'.format(round(self.sigma_fit,3), round(self.sigma_err,3)))
+        for i in range(len(self.p_fit)):
+            print('GP'+str(i)+' , err:', round(self.p_fit[i],3), round(self.p_err[i],3))
+            self.results_file.write('GP {0}: {1} , err: {2} \n'.format(str(i), round(self.p_fit[i],3), round(self.p_err[i],3)))
         #print("Model lnlikelihood: ", prob[maxprob_index])
         #self.results_file.write('Model lnlikelihood: {0} \n'.format(prob[maxprob_index]))
         print("Std GP: ", np.mean(self.std_gp))
@@ -504,8 +549,12 @@ class GPMC:
             #self.mu_gp_test, _ = gp.predict(self.residual_blr_test, self.X_gp_test)  # GP Model 
             self.mu_gp_test, _ = gp.predict(self.residual_blr, self.X_gp_test)  # GP Model 
             """
+            cov_gp_test = self.calc_covariance_matrix(self.X_gp_test, self.p_fit, self.sigma_fit)
+            Lower = np.linalg.cholesky(cov_gp_test)
+            self.y_model_test = self.mu_blr_test + Lower.T.dot(np.random.normal(0,1,len(self.y_test)))
+            #self.y_model_test = np.random.multivariate_normal(self.mu_blr_test, cov_gp_test)
             #self.y_model_test = self.mu_gp_test + self.mu_blr_test  # Final Model 
-            self.y_model_test = self.mu_blr_test  # Final Model 
+            #self.y_model_test = self.mu_blr_test  # Final Model 
             #self.y_model_test = self.mu_gp_test  # Final Model 
         else:
             self.mu_blr_test, self.mu_gp_test, self.residual_blr_test, self.y_model_test = np.zeros(4)
@@ -520,10 +569,10 @@ class GPMC:
         self.residual_test = self.y_test - self.y_model_test
         print('Mean abs Residual train: ', round(np.mean(abs(self.residual)),3))
         print('Mean abs Residual BLR train: ', round(np.mean(abs(self.residual_blr)),3))
-        print('Mean abs Residual GP train: ',  round(np.mean(abs(self.y - self.mu_gp)),3))
+        #print('Mean abs Residual GP train: ',  round(np.mean(abs(self.y - self.mu_gp)),3))
         self.results_file.write('Mean abs Residual train: {0} \n'.format(round(np.mean(abs(self.residual)),3)))
         self.results_file.write('Mean abs Residual BLR train: {0} \n'.format(round(np.mean(abs(self.residual_blr)),3)))
-        self.results_file.write('Mean abs Residual GP train: {0} \n'.format(round(np.mean(abs(self.y - self.mu_gp)),3)))
+        #self.results_file.write('Mean abs Residual GP train: {0} \n'.format(round(np.mean(abs(self.y - self.mu_gp)),3)))
         rmse_train = np.sqrt(np.sum(self.residual**2)) / len(self.residual)
         rmse_test = np.sqrt(np.sum(self.residual_test**2)) / len(self.residual_test)
         print('RMSE train: ', round(rmse_train, 3))
@@ -605,14 +654,17 @@ class GPMC:
         nsamples = self.nwalkers * nitersample
         print("Number of chosen samples for evaluation: ,", nsamples, " Calculating y model values ...")
         nlim = self.niter - nitersample
-        self.samples_i = self.sampler_chain[:, nlim:, :].reshape((-1, self.ndim))
-        self.mu_i = np.zeros((nsamples, len(self.y)))
+        choose_samples = np.random.choice(self.niter, nitersample, replace=False)
+        self.samples_i = self.sampler_chain[:, choose_samples, :].reshape((-1, self.ndim))
+        #self.samples_i = self.sampler_chain[:, nlim:, :].reshape((-1, self.ndim))
+        self.mu_i = np.zeros((nsamples, self.ndata))
         self.residual_i = np.zeros_like(self.mu_i)
         self.mu_i_test  = np.zeros((nsamples, len(self.y_test)))
         for i in range(self.samples_i.shape[0]):
             alpha = self.samples_i[i,0]
             sigma = self.samples_i[i,1]
             beta = self.samples_i[i, 2:self.ndim_blr+2]
+            gphp = self.samples_i[i, self.ndim_blr+2:]
             # Calculate for train data set:
             y_blr = self.predict_blr(self.X_blr, alpha, beta)
             resid_blr = self.y - y_blr
@@ -623,7 +675,6 @@ class GPMC:
                 gp.kernel.pars = np.exp(self.samples_i[i, self.ndim_blr + 2:])
             else:
                 gp.kernel.set_parameter_vector(self.samples_i[i, self.ndim_blr + 2:])
-            """
             try:
                 gp.compute(self.X_gp, sigma)
                 mu_gp, _ = gp.predict(resid_blr, self.X_gp)
@@ -632,6 +683,11 @@ class GPMC:
                 #self.mu_i[i, :] = mu_gp
             except:
                 self.mu_i[i,:] = y_blr
+            """
+            cov_gp = self.calc_covariance_matrix(self.X_gp, gphp, sigma)
+            Lower = np.linalg.cholesky(cov_gp)
+            self.mu_i[i, :] = y_blr + Lower.T.dot(np.random.normal(0,1,self.ndata))
+            #self.mu_i[i,:] = np.random.multivariate_normal(y_blr, cov_gp)
             self.residual_i[i] = np.sum(self.y - self.mu_i[i, :])
             # Calculate for test data:
             y_blr_test = self.predict_blr(self.X_blr_test, alpha, beta)
@@ -639,7 +695,6 @@ class GPMC:
             """
             #gp = george.GP(self.kernel, mean=np.mean(resid_blr_test))
             gp = george.GP(self.kernel, mean=0.)
-            """
             try:
                 gp.compute(self.X_gp, sigma)
                 #mu_gp_test, _ = gp.predict(resid_blr_test, self.X_gp_test)
@@ -649,20 +704,25 @@ class GPMC:
                 #self.mu_i_test[i, :] = mu_gp_test
             except:
                 self.mu_i_test[i, :] = y_blr_test
-        self.perc2_area = np.asarray([np.percentile(self.mu_i[:, i], 2) for i in range(len(self.y))]) # rounded from 2.3
-        self.perc16_area = np.asarray([np.percentile(self.mu_i[:, i], 16) for i in range(len(self.y))])
-        self.perc50_area = np.asarray([np.percentile(self.mu_i[:, i], 50) for i in range(len(self.y))])
-        self.perc84_area = np.asarray([np.percentile(self.mu_i[:, i], 84) for i in range(len(self.y))])
-        self.perc97_area = np.asarray([np.percentile(self.mu_i[:, i], 98) for i in range(len(self.y))]) # rounded from 97.7
+            """
+            cov_gp_test = self.calc_covariance_matrix(self.X_gp_test, gphp, sigma)
+            Lower = np.linalg.cholesky(cov_gp_test)
+            self.mu_i_test[i, :] = y_blr_test + Lower.T.dot(np.random.normal(0,1,len(self.y_test)))
+            #self.mu_i_test[i, :] = np.random.multivariate_normal(y_blr_test, cov_gp_test)
+        self.perc2_area = np.asarray([np.percentile(self.mu_i[:, i], 2) for i in range(self.ndata)]) # rounded from 2.3
+        self.perc16_area = np.asarray([np.percentile(self.mu_i[:, i], 16) for i in range(self.ndata)])
+        self.perc50_area = np.asarray([np.percentile(self.mu_i[:, i], 50) for i in range(self.ndata)])
+        self.perc84_area = np.asarray([np.percentile(self.mu_i[:, i], 84) for i in range(self.ndata)])
+        self.perc97_area = np.asarray([np.percentile(self.mu_i[:, i], 98) for i in range(self.ndata)]) # rounded from 97.7
         #print("Number of train areas within 2 and 97 percentile:", len(self.y[(self.y > self.perc2_area) & (self.y <= self.perc97_area)]))
         #print("Number of train areas within 16 and 84 percentile:", len(self.y[(self.y > self.perc16_area) & (self.y <= self.perc84_area)]))
-        ymodel_mean = np.mean(self.mu_i)
-        ymodel_std = np.std(self.mu_i)
-        ci95_train = len(self.y[(self.y >= (ymodel_mean - 2 * ymodel_std)) & (self.y < (ymodel_mean + 2 * ymodel_std))]) \
-                     * 1. / len(self.y)
-        ymodel_mean_test = np.mean(self.mu_i_test)
-        ymodel_std_test = np.std(self.mu_i_test)
-        ci95_test = len(self.y_test[(self.y_test >= (ymodel_mean_test - 2 * ymodel_std_test)) & (self.y_test < (ymodel_mean_test + 2 * ymodel_std_test))]) \
+        self.ymodel_mean = np.mean(self.mu_i, axis=0)
+        self.ymodel_std = np.std(self.mu_i, axis=0)
+        ci95_train = len(self.y[(self.y >= (self.ymodel_mean - 2 * self.ymodel_std)) & (self.y < (self.ymodel_mean + 2 * self.ymodel_std))]) \
+                     * 1. / self.ndata
+        self.ymodel_mean_test = np.mean(self.mu_i_test, axis=0)
+        self.ymodel_std_test = np.std(self.mu_i_test, axis=0)
+        ci95_test = len(self.y_test[(self.y_test >= (self.ymodel_mean_test - 2 * self.ymodel_std_test)) & (self.y_test < (self.ymodel_mean_test + 2 * self.ymodel_std_test))]) \
                     * 1. / len(self.y_test)
         print('Percent of train locations in 95 percent CI: ', ci95_train * 100.)
         self.results_file.write('Percent of train locations in 95 percent CI: {0} \n'.format(ci95_train * 100.))
@@ -672,7 +732,7 @@ class GPMC:
         per2_train = np.percentile(self.mu_i, 2, axis=0)
         per97_test = np.percentile(self.mu_i_test, 97, axis=0)
         per2_test = np.percentile(self.mu_i_test, 2, axis=0)
-       # ci_per95_train = len(self.y[(self.y > per2_train) & (self.y < per97_train)]) * 1. / len(self.y)
+       # ci_per95_train = len(self.y[(self.y > per2_train) & (self.y < per97_train)]) * 1. / self.ndata
        # ci_per95_test = len(self.y_test[(self.y_test > per2_test) & (self.y_test < per97_test)])  * 1./ len(self.y_test)
        # print('Percent of train locations in 95 percent CI: ', np.round(ci_per95_train * 100.,3))
        # self.results_file.write('Percent of train locations in 95 percent CI: {0} \n'.format(np.round(ci_per95_train * 100.,3)))
@@ -718,13 +778,14 @@ class GPMC:
         y_range = [ymin - ydiff*0.2, ymax + ydiff*0.2]
         plt.clf()
         plt.plot(x_range, y_range, '.', alpha=0.0)
-        plt.plot(self.y, self.y_model, 'o', c='b',label='Train', alpha=0.5)
-        plt.plot(self.y_test, self.y_model_test, 'o', c='r',label='Test', alpha=0.5)
-        plt.plot(self.y_model, self.y_model, 'k--', label='Perfect Prediction')
+        #plt.plot(self.y, self.y_model, 'o', c='b',label='Train', ms=3, alpha=0.5)
+        plt.plot(self.y, self.ymodel_mean, 'o', c='b',label='Train', ms=3, alpha=0.5)
+        #plt.plot(self.y_test, self.y_model_test, 'o', c='r',label='Test', ms=3, alpha=0.5)
+        plt.plot(self.y_test, self.ymodel_mean_test, 'o', c='r',label='Test', ms=3, alpha=0.5)
+        plt.plot(self.y, self.y, 'k--', label='Perfect Prediction')
         plt.xlabel('Observed y')
         plt.ylabel('Predicted y')
         plt.title('Predicted vs Ground Truth')
-        # plt.title('Predicted vs Ground Truth')
         plt.legend(loc='upper left', numpoints=1)
         ax = plt.axes([0.63, 0.15, 0.25, 0.25], frameon=True)
         ax.hist(self.residual, alpha=0.5, bins=16, color='b', stacked=True, normed=True)
@@ -733,6 +794,28 @@ class GPMC:
         ax.set_title('Residual')
         plt.draw()
         plt.savefig(self.outmcmc + 'Data_vs_Model_1d.png')
+        # Plot Prediction & Uncertainty for Test locations
+        xmin = np.min(self.y_test)
+        xmax = np.max(self.y_test)
+        xdiff = xmax - xmin
+        ymin = np.min(self.y_model_test)
+        ymax = np.max(self.y_model_test)
+        ydiff = ymax - ymin
+        x_range = [xmin - xdiff*0.2, xmax + xdiff*0.2]
+        y_range = [ymin - ydiff*0.2, ymax + ydiff*0.2]
+        plt.clf()
+        plt.plot(x_range, y_range, '.', alpha=0.0)
+        #plt.plot(self.y_test, self.y_model_test, 'o', c='k',label='Test', ms=4, alpha=0.5)
+        plt.plot(self.y_test, self.ymodel_mean_test, 'o', c='k',label='Prediction', ms=4, alpha=0.5)
+        plt.plot(self.y_test, self.ymodel_mean_test+2.*self.ymodel_std_test, 'o', c='b',label='Pred + 2std', ms=3, alpha=0.5)
+        plt.plot(self.y_test, self.ymodel_mean_test-2.*self.ymodel_std_test, 'o', c='r',label='Pred - 2std', ms=3, alpha=0.5)
+        plt.plot(self.y, self.y, 'k--', label='Perfect Prediction')
+        plt.xlabel('Observed y')
+        plt.ylabel('Predicted y')
+        plt.title('Predicted vs Ground Truth (Test)')
+        plt.legend(loc='upper left', numpoints=1)
+        plt.draw()
+        plt.savefig(self.outmcmc + 'Data_vs_Model_Test.png')
         # plot more histograms:
         # plt.clf()
         # plt.hist(self.residual_i, 30, facecolor='blue', alpha=0.5)
@@ -741,21 +824,22 @@ class GPMC:
         # plt.draw()
         # plt.savefig(outdir + 'hist_residual.png')
         plt.clf()
-        plt.plot(self.y, self.mu_blr, 'o')
+        plt.plot(self.y, self.mu_blr, 'o', ms=3)
+        plt.plot(self.y, self.y, 'k--')
         plt.xlabel('Actual '+ target_desc)
         plt.ylabel('Predicted '+ target_desc)
         plt.title('Predicted from Demographics vs Ground Truth')
         plt.draw()
         plt.savefig(self.outmcmc + 'Data_ModelBLR_1d.png')
         plt.clf()
-        plt.plot(self.y_model, self.residual, 'o')
+        plt.plot(self.y_model, self.residual, 'o', ms=3)
         plt.plot([min(self.y_model),max(self.y_model)],[0,0],'k--')
         plt.xlabel('Predicted '+ target_desc)
         plt.ylabel('Residual')
         plt.draw()
         plt.savefig(self.outmcmc + 'Model_Residual_1d.png')
         plt.clf()
-        plt.plot(self.y_model_test, self.residual_test, 'o')
+        plt.plot(self.y_model_test, self.residual_test, 'o', ms=3)
         plt.plot([min(self.y_model_test),max(self.y_model_test)],[0,0],'k--')
         plt.xlabel('Test Predicted '+ target_desc)
         plt.ylabel('Test Residual')
