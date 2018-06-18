@@ -34,11 +34,13 @@ cd GPplus2/
 python run_GPplus.py
 ```
 Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Changes include:
-* choice of functions and parameters depending on version of george being used
 * references to new variable target_desc instead of Crime
-* removal of dropout flag (was never used)
+* writing covariance matrix and likelihood function manually (instead of using george)
+* drawing predictions from multivariate normal
 * getting and writing parameter-scaling terms (min and range) to csv-file
-* adding exact prediction line to output plot
+* two distinct GP length scale parameters (one for latitude, one for longitude)
+* removal of dropout flag (was never used)
+
 
 
  
