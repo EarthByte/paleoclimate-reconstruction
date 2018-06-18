@@ -121,7 +121,7 @@ gpmc.calc_mcmc(nwalkers, niter, nburn, split_traintest)
 
 # 4) make summary calculations for MCMC performance evaluation
 gpmc.calc_residual()  # print residuals
-gpmc.calc_samples(nitersample=10)
+gpmc.calc_samples(nitersample=30)
 gpmc.results_file.close() # closes output text file (automatically opened in gpmc initialization)
 
 # 5) Plot result histograms and diagrams
