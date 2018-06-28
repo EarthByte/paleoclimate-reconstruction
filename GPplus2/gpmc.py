@@ -295,22 +295,6 @@ class GPMC:
         return lnlike
 
 
-    def lnprior_sigma(self, sigma):
-        """
-        Prior for gaussian noise
-        :param sigma: noise sigma
-        """
-        if np.any((1e-3 > sigma) + (sigma > self.y_std)):
-            ln_prob = - np.inf
-        else:
-            type='uniform'
-            if(type=='uniform'):
-                ln_prob = 0.
-            elif(type=='separable'):
-                ln_prob = ln_prob - np.log(sigma) # independent sigma prior
-        return ln_prob
-
-
     def lnprior_blr(self, alpha, beta, sigma):
         """
         Prior for Bayesian Linear Regression 
@@ -375,8 +359,7 @@ class GPMC:
         #self.residual_blr = resid_blr
         #return lnpost_blr + self.lnprior_gp(p) + self.lnlike_gp(p, sigma) 
         #return self.lnprior_blr(alpha, beta, sigma) + self.lnprior_gp(p) + self.lnlike_gp(p, sigma)
-        #return self.lnprior_blr(alpha, beta, sigma) + self.lnprior_gp(p) + self.lnlikelihood(resid_blr, alpha, beta, sigma, p) 
-        return self.lnprior_blr(alpha, beta, sigma) + self.lnlikelihood(resid_blr, alpha, beta, sigma, p) 
+        return self.lnprior_blr(alpha, beta, sigma) + self.lnprior_gp(p) + self.lnlikelihood(resid_blr, alpha, beta, sigma, p) 
 
 
     def scale_data(self, data):
