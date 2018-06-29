@@ -50,7 +50,7 @@ lon_min = -180.
 lon_max =  180.
 lat_min =  -90.
 lat_max =   90.
-lon_spacing = 1.5
+lon_spacing = 2.51
 
 lon_coords = np.arange(lon_min,lon_max-0.5*lon_spacing,lon_spacing) # left edge of grid
 nlonbins = len(lon_coords)
@@ -222,8 +222,8 @@ for idx, result in enumerate(shoreline_results):
     shoredist[idx] = result[1]
     shoredirc[idx] = result[2]
 map_overland_binary = overland.reshape((nlatbins,nlonbins))
-map_shore_distance  = shoredist.reshape((nlatbins,nlonbins))
-map_shore_direction = shoredirc.reshape((nlatbins,nlonbins))
+map_shoredistance  = shoredist.reshape((nlatbins,nlonbins))
+map_shoredirection = shoredirc.reshape((nlatbins,nlonbins))
 
 fig = plt.figure(figsize=(16,8))
 ax_overland = fig.add_subplot(111)
@@ -242,8 +242,9 @@ mask_nodeposits = np.invert(unmask_deposits)
 unmask_include = unmask_deposits.copy() #(unmask_overland | unmask_deposits) & unmask_deposits
 mask_exclude = np.invert(unmask_include)
 unmask_deposits_shallowmarine = unmask_deposits & np.invert(unmask_overland)
-map_shore_distance[unmask_deposits_shallowmarine] = 0
-map_shore_direction[unmask_deposits_shallowmarine] = map_shore_direction[unmask_deposits_shallowmarine] - 180.
+map_shoredistance[unmask_deposits_shallowmarine] = 0
+map_shoredirection[unmask_deposits_shallowmarine] = map_shoredirection[unmask_deposits_shallowmarine] - 180.
+map_shoredistance_sqrt  = np.sqrt(map_shoredistance)
 
 
 # REPLOT (Distance, Deposits)
@@ -252,7 +253,7 @@ cmap_shoredist = sns.cubehelix_palette(8, start=2., rot=-.3, dark=0.3, light=0.7
 vmin=0.
 vmax=1850.
 ax_shoredist = fig.add_subplot(111)
-ax_shoredist = sns.heatmap(map_shore_distance, cmap=cmap_shoredist, vmin=vmin, vmax=vmax, square=True, cbar=True, cbar_kws={"shrink": .75}, xticklabels=False, yticklabels=False, mask=mask_exclude)
+ax_shoredist = sns.heatmap(map_shoredistance, cmap=cmap_shoredist, vmin=vmin, vmax=vmax, square=True, cbar=True, cbar_kws={"shrink": .75}, xticklabels=False, yticklabels=False, mask=mask_exclude)
 ax_shoredist.set_xlabel('Paleolongitude')
 ax_shoredist.set_ylabel('Paleolatitude')
 ax_shoredist.set_title('Distance to shoreline during Miocene')
@@ -372,7 +373,7 @@ ax_precip_elev.set_title('Precipitation versus Elevation during Miocene')
 fig.savefig(images_folder+"scatter_elevationsqrt_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
-feature = map_shore_distance[unmask_include].flatten()
+feature = map_shoredistance[unmask_include].flatten()
 fig, ax_precip_dist = plt.subplots(figsize=(7,7))            
 ax_precip_dist.plot(feature, target, marker='o', linestyle='', ms=2)
 ax_precip_dist.set_xlabel('Distance to Shore')
@@ -381,7 +382,16 @@ ax_precip_dist.set_title('Precipitation versus Distance to Shore during Miocene'
 fig.savefig(images_folder+"scatter_shoredist_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
-feature = np.sin(np.radians(map_shore_direction[unmask_include].flatten()))
+feature = map_shoredistance_sqrt[unmask_include].flatten()
+fig, ax_precip_dist = plt.subplots(figsize=(7,7))            
+ax_precip_dist.plot(feature, target, marker='o', linestyle='', ms=2)
+ax_precip_dist.set_xlabel('Sqrt Distance to Shore')
+ax_precip_dist.set_ylabel(target_label)
+ax_precip_dist.set_title('Precipitation versus Distance to Shore during Miocene')
+fig.savefig(images_folder+"scatter_shoredistsqrt"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+plt.close(fig)
+
+feature = np.sin(np.radians(map_shoredirection[unmask_include].flatten()))
 fig, ax_precip_sind = plt.subplots(figsize=(7,7))            
 ax_precip_sind.plot(feature, target, marker='o', linestyle='', ms=2)
 ax_precip_sind.set_xlabel('Sin Direction to Shore')
@@ -390,7 +400,7 @@ ax_precip_sind.set_title('Precipitation versus Sin of Direction to Shore during 
 fig.savefig(images_folder+"scatter_shoresind_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
-feature = np.cos(np.radians(map_shore_direction[unmask_include].flatten()))
+feature = np.cos(np.radians(map_shoredirection[unmask_include].flatten()))
 fig, ax_precip_cosd = plt.subplots(figsize=(7,7))            
 ax_precip_cosd.plot(feature, target, marker='o', linestyle='', ms=2)
 ax_precip_cosd.set_xlabel('Cos Direction to Shore')
@@ -433,32 +443,46 @@ plt.close(fig)
 cmap_logprecip = sns.cubehelix_palette(8, start=0.65, rot=-0.9, light=0.7, as_cmap=True)
 
 feature1 = map_elevation[unmask_include].flatten()
-feature2 = map_shore_distance[unmask_include].flatten()
+feature2 = map_shoredistance[unmask_include].flatten()
 fig, ax_precip_featfeat = plt.subplots(figsize=(7,7))
-ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+sc = ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+plt.colorbar(sc)
 ax_precip_featfeat.set_xlabel('Elevation')
 ax_precip_featfeat.set_ylabel('Distance to Shore')
-ax_precip_featfeat.set_title(target_label + ' versus Distance to Shore and Elevation')
+ax_precip_featfeat.set_title(target_label + ' vs Predictors')
 fig.savefig(images_folder+"scatter_elevdist_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
-feature1 = np.sin(np.radians(map_shore_direction[unmask_include].flatten()))
-feature2 = map_shore_distance[unmask_include].flatten()
+feature1 = map_elevation_sqrt[unmask_include].flatten()
+feature2 = map_shoredistance_sqrt[unmask_include].flatten()
 fig, ax_precip_featfeat = plt.subplots(figsize=(7,7))
-ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+sc = ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+plt.colorbar(sc)
+ax_precip_featfeat.set_xlabel('Sqrt Elevation')
+ax_precip_featfeat.set_ylabel('Sqrt Distance to Shore')
+ax_precip_featfeat.set_title(target_label + ' vs Predictors')
+fig.savefig(images_folder+"scatter_elevdistsqrt_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.3)
+plt.close(fig)
+
+feature1 = np.sin(np.radians(map_shoredirection[unmask_include].flatten()))
+feature2 = map_shoredistance[unmask_include].flatten()
+fig, ax_precip_featfeat = plt.subplots(figsize=(7,7))
+sc = ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+plt.colorbar(sc)
 ax_precip_featfeat.set_xlabel('Sin Direction to Shore')
 ax_precip_featfeat.set_ylabel('Distance to Shore')
-ax_precip_featfeat.set_title(target_label + ' versus Distance and Sin Direction to Shore')
+ax_precip_featfeat.set_title(target_label + ' vs Predictors')
 fig.savefig(images_folder+"scatter_sinddist_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
-feature1 = np.cos(np.radians(map_shore_direction[unmask_include].flatten()))
-feature2 = map_shore_distance[unmask_include].flatten()
+feature1 = np.cos(np.radians(map_shoredirection[unmask_include].flatten()))
+feature2 = map_shoredistance[unmask_include].flatten()
 fig, ax_precip_featfeat = plt.subplots(figsize=(7,7))
-ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+sc = ax_precip_featfeat.scatter(feature1, feature2, c=target, cmap=cmap_logprecip, alpha=0.4)
+plt.colorbar(sc)
 ax_precip_featfeat.set_xlabel('Cos Direction to Shore')
 ax_precip_featfeat.set_ylabel('Distance to Shore')
-ax_precip_featfeat.set_title(target_label + ' versus Distance and Cos Direction to Shore')
+ax_precip_featfeat.set_title(target_label + ' vs Predictors')
 fig.savefig(images_folder+"scatter_cosddist_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
@@ -469,7 +493,7 @@ print("Reformatting data for GP modelling...")
 with open(data_folder+'precipitation_gpmodel_data.csv','wb') as csvfile:
     wr = csv.writer(csvfile)
     wr.writerow(['region_id',
-                 'centroid_x', 'centroid_y', 'Precipitation', 'Log Precipitation', 
+                 'centroid_x', 'centroid_y', 'Precipitation', 'Log10 Precipitation', 
                  'Coal Deposits', 'Evaporites Deposits', 'Glacial Deposits', 
                  'Latitude', 'Longitude', 'Abs Latitude', 'Elevation', 'Sqrt Elevation', 'ASinh Elevation Sc50', 'Dist to Shore', 'Sqrt Dist', 'ASinh Dist Sc50', 'Sin Angle Shore', 'Cos Angle Shore'])
     ridx = 0
@@ -488,8 +512,8 @@ with open(data_folder+'precipitation_gpmodel_data.csv','wb') as csvfile:
                 elev = map_elevation[nlatbins-ilat-1,ilon]
                 if elev<0:
                     elev = 0.
-                dist = map_shore_distance[nlatbins-ilat-1,ilon]
-                dird = map_shore_direction[nlatbins-ilat-1,ilon]
+                dist = map_shoredistance[nlatbins-ilat-1,ilon]
+                dird = map_shoredirection[nlatbins-ilat-1,ilon]
                 dirr = radians(dird)
                 row_fpos  = [latm, lonm, prec, logp]
                 row_ideps = [coal, evap, glac]
