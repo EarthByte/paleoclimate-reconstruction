@@ -35,8 +35,8 @@ create_maps = False # creates interactive html maps of crime results, not includ
 # GP setup
 kernelname = 'expsquared' # choose from: 'expsquared', 'matern32' or 'rationalq' (Rational Quadratic)
 # MCMC setup; see emcee documentation for more details (http://dfm.io/emcee/current/)
-nwalkers = 24 # Number of walkers, recommended at least 2 * Nparameter + 1 (recommended more)
-niter = 2500  # Number of iterations, recommended at least 500
+nwalkers = 32 # Number of walkers, recommended at least 2 * Nparameter + 1 (recommended more)
+niter = 2000  # Number of iterations, recommended at least 500
 nburn = 1500 # Number of iterations, recommended at least 20% of niter, check sampler chains for convergence.
 nfold_cross = 1 # Number of x-fold for cross-validation for test-train sets; set to 1 for only one run 
 #(Notes: test first with nfold-cross = 1; computational time ~ nfold_cross; also not all plotting availabable yet for nfold_cross>1)
@@ -49,21 +49,21 @@ use_log = False # select false if input features need NOT to be converted into l
 # use population number by area of region instead of just absolute population numbers?
 #pop_per_area = True
 
-target_name = 'Log Precipitation'
-target_desc = 'Log Precipitation' # for plot axes labels
+target_name = 'Log10 Precipitation'
+target_desc = 'Log10 Precipitation' # for plot axes labels
 
 # Identify features in data that should be used for linear regression
 # Names must match column names in header, replace names below accordingly:
 x_feature_names = ['Coal Deposits',
                    'Evaporites Deposits',
                    'Glacial Deposits',
-                   #'Elevation',
-                   'Sqrt Elevation',
-                   #'Dist to Shore'
-                   'Sqrt Dist',
+                   'Elevation',
+                   #'Sqrt Elevation',
+                   'Dist to Shore',
+                   #'Sqrt Dist',
                    #'ASinh Elevation Sc50',
-                   #'Sin Angle Shore',
-                   #'Cos Angle Shore'
+                   'Sin Angle Shore',
+                   'Cos Angle Shore'
                    ]
 
 
@@ -71,13 +71,13 @@ x_feature_names = ['Coal Deposits',
 x_feature_desc = ['Coal Deposits',
                   'Evaporites Deposits',
                   'Glacial Deposits',
-                  #'Elevation',
-                  'Sqrt Elevation',
-                  #'Distance to Shore'
-                  'Sqrt Distance',
+                  'Elevation',
+                  #'Sqrt Elevation',
+                  'Distance to Shore',
+                  #'Sqrt Distance',
                   #'ASinh Elevation Sc50',
-                  #'Eastern  shore (sin)',
-                  #'Northern shore (cos)'
+                  'Eastern  shore (sin)',
+                  'Northern shore (cos)'
                   ]
                   
 
