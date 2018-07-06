@@ -21,7 +21,7 @@ and the following simulated results:
 ## Step 1: Pre-processing raw data
 Run
 ```sh 
-python data_preprocessing.py
+python data_preprocess_miocene.py
 ```
 creates
 * gridded input data maps in data/images/
@@ -41,6 +41,16 @@ Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Cha
 * two distinct GP length scale parameters (one for latitude, one for longitude)
 * removal of dropout flag (was never used)
 
+
+## Step 3: Prediction Input Data
+Run
+```sh 
+python data_predictors_data_anygeotimes.py
+```
+creates
+* gridded input data maps in data/images/
+* predictor_data_XXX_YYY.csv in data/
+where XXX is the geological epoch and YYY is either land or deposit
 
 
  
