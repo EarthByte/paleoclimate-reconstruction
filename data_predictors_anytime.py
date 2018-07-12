@@ -191,7 +191,7 @@ def map_deposits_gridded(epoch_deposits, epoch_name, output_folder, lon_coords, 
     fig.savefig(output_folder+"map_deposits_evaporites_"+epoch_name+".png", bbox_inches='tight', pad_inches=0.3)
     # ### Glacial
     glacial_rows = [False]*epoch_deposits.shape[0]
-    glacial_codes = ['G','T']
+    glacial_codes = ['G','T','D']
     for code in glacial_codes:
         this_code_rows = epoch_deposits.loc[:,'LithologyCode']==code
         glacial_rows = glacial_rows | this_code_rows
