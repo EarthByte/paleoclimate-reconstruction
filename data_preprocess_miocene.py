@@ -102,7 +102,7 @@ ax_deposits.set_ylabel('Paleolatitude')
 ax_deposits.set_title('Climate-Sensitive Lithologic Deposits from the Miocene')
 ax_deposits.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 ax_deposits.axis('scaled')
-fig.savefig(images_folder+"scatter_deposits_miocene.png", dpi=fig_dpi, bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"scatter_deposits_miocene.pdf", dpi=fig_dpi, bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 mapbin_deposits_all = np.zeros((nlatbins,nlonbins))
@@ -130,13 +130,15 @@ ax_deposits_coal = sns.heatmap(mapbin_deposits_coal, square=True, cbar=False, cm
 ax_deposits_coal.set_xlabel('Paleolongitude')
 ax_deposits_coal.set_ylabel('Paleolatitude')
 ax_deposits_coal.set_title('Presence of coal deposits during Miocene')
-fig.savefig(images_folder+"map_deposits_coal_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_deposits_coal_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 # ### Evaporites
-evaporite_specific_rows = miocene_deposits.loc[:,'LithologyCode']=='E'
-calcrete_rows = miocene_deposits.loc[:,'LithologyCode']=='CA'
-evaporites_rows = evaporite_specific_rows | calcrete_rows
+evaporites_rows = [False]*miocene_deposits.shape[0]
+evaporites_codes = ['E','CA']
+for code in evaporites_codes:
+    this_code_rows = miocene_deposits.loc[:,'LithologyCode']==code
+    evaporites_rows = evaporites_rows | this_code_rows
 miocene_deposits_evaporites = miocene_deposits.loc[evaporites_rows,:].copy()
 mapbin_deposits_evaporites = np.zeros((nlatbins,nlonbins))
 lon_all = miocene_deposits_evaporites.loc[:,'Paleolongitude'].copy()
@@ -153,7 +155,7 @@ ax_deposits_evaporites = sns.heatmap(mapbin_deposits_evaporites, square=True, cb
 ax_deposits_evaporites.set_xlabel('Paleolongitude')
 ax_deposits_evaporites.set_ylabel('Paleolatitude')
 ax_deposits_evaporites.set_title('Presence of evaporite deposits during Miocene')
-fig.savefig(images_folder+"map_deposits_evaporites_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_deposits_evaporites_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 # ### Glacial
@@ -178,7 +180,7 @@ ax_deposits_glacial = sns.heatmap(mapbin_deposits_glacial, square=True, cbar=Fal
 ax_deposits_glacial.set_xlabel('Paleolongitude')
 ax_deposits_glacial.set_ylabel('Paleolatitude')
 ax_deposits_glacial.set_title('Presence of glacial deposits during Miocene')
-fig.savefig(images_folder+"map_deposits_glacial_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_deposits_glacial_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 # ### Deposit types
@@ -187,7 +189,7 @@ ax_deposits_all = sns.heatmap(mapbin_deposits_all, square=True, cbar=False, cmap
 ax_deposits_all.set_xlabel('Paleolongitude')
 ax_deposits_all.set_ylabel('Paleolatitude')
 ax_deposits_all.set_title('Deposit-types during Miocene')
-fig.savefig(images_folder+"map_deposits_all_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_deposits_all_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 # ### Number of Deposits
@@ -197,7 +199,7 @@ ax_deposits_number = sns.heatmap(mapbin_deposits_number, square=True, cbar=False
 ax_deposits_number.set_xlabel('Paleolongitude')
 ax_deposits_number.set_ylabel('Paleolatitude')
 ax_deposits_number.set_title('Number of deposit-types during Miocene')
-fig.savefig(images_folder+"map_deposits_number_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_deposits_number_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 
@@ -231,7 +233,7 @@ ax_overland = sns.heatmap(map_overland_binary, cmap='coolwarm', square=True, cba
 ax_overland.set_xlabel('Paleolongitude')
 ax_overland.set_ylabel('Paleolatitude')
 ax_overland.set_title('Distribution of land-mass during Miocene')
-fig.savefig(images_folder+"map_overland_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_overland_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 
@@ -257,7 +259,7 @@ ax_shoredist = sns.heatmap(map_shoredistance, cmap=cmap_shoredist, vmin=vmin, vm
 ax_shoredist.set_xlabel('Paleolongitude')
 ax_shoredist.set_ylabel('Paleolatitude')
 ax_shoredist.set_title('Distance to shoreline during Miocene')
-fig.savefig(images_folder+"map_shoredist_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_shoredist_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 
@@ -294,7 +296,7 @@ ax_rainfall_mask = sns.heatmap(map_precipitation, cmap='RdBu', cbar=True, cbar_k
 ax_rainfall_mask.set_xlabel('Paleolongitude')
 ax_rainfall_mask.set_ylabel('Paleolatitude')
 ax_rainfall_mask.set_title('Annual Precipitation during Miocene')
-fig.savefig(images_folder+"map_precipitation_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_precipitation_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 fig, ax_lograinfall = plt.subplots(figsize=(16,8))            
@@ -303,7 +305,7 @@ ax_lograinfall = sns.heatmap(map_log10precip, cmap=cmap_logprecip, cbar=True, cb
 ax_lograinfall.set_xlabel('Paleolongitude')
 ax_lograinfall.set_ylabel('Paleolatitude')
 ax_lograinfall.set_title('Annual Log10 Precipitation during Miocene')
-fig.savefig(images_folder+"map_log10precip_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_log10precip_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 
@@ -330,7 +332,7 @@ ax_elevation_mask = sns.heatmap(map_elevation, cmap=cmap_elevation, cbar=True, c
 ax_elevation_mask.set_xlabel('Paleolongitude')
 ax_elevation_mask.set_ylabel('Paleolatitude')
 ax_elevation_mask.set_title('Height above sea-level during Miocene')
-fig.savefig(images_folder+"map_elevation_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_elevation_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 vmin=0.
@@ -340,7 +342,7 @@ ax_elevation_mask = sns.heatmap(map_elevation_sqrt, cmap=cmap_elevation, cbar=Tr
 ax_elevation_mask.set_xlabel('Paleolongitude')
 ax_elevation_mask.set_ylabel('Paleolatitude')
 ax_elevation_mask.set_title('Sqrt height above sea-level during Miocene')
-fig.savefig(images_folder+"map_elevationsqrt_miocene.png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"map_elevationsqrt_miocene.pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 
@@ -361,7 +363,7 @@ ax_precip_elev.plot(feature, target, marker='o', linestyle='', ms=2)
 ax_precip_elev.set_xlabel('Elevation')
 ax_precip_elev.set_ylabel(target_label)
 ax_precip_elev.set_title('Precipitation versus Elevation during Miocene')
-fig.savefig(images_folder+"scatter_elevation_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+fig.savefig(images_folder+"scatter_elevation_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
 feature = map_elevation_sqrt[unmask_include].flatten()
@@ -370,7 +372,7 @@ ax_precip_elev.plot(feature, target, marker='o', linestyle='', ms=2)
 ax_precip_elev.set_xlabel('Sqrt Elevation')
 ax_precip_elev.set_ylabel(target_label)
 ax_precip_elev.set_title('Precipitation versus Elevation during Miocene')
-fig.savefig(images_folder+"scatter_elevationsqrt_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+fig.savefig(images_folder+"scatter_elevationsqrt_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
 feature = map_shoredistance[unmask_include].flatten()
@@ -379,7 +381,7 @@ ax_precip_dist.plot(feature, target, marker='o', linestyle='', ms=2)
 ax_precip_dist.set_xlabel('Distance to Shore')
 ax_precip_dist.set_ylabel(target_label)
 ax_precip_dist.set_title('Precipitation versus Distance to Shore during Miocene')
-fig.savefig(images_folder+"scatter_shoredist_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+fig.savefig(images_folder+"scatter_shoredist_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
 feature = map_shoredistance_sqrt[unmask_include].flatten()
@@ -388,7 +390,7 @@ ax_precip_dist.plot(feature, target, marker='o', linestyle='', ms=2)
 ax_precip_dist.set_xlabel('Sqrt Distance to Shore')
 ax_precip_dist.set_ylabel(target_label)
 ax_precip_dist.set_title('Precipitation versus Distance to Shore during Miocene')
-fig.savefig(images_folder+"scatter_shoredistsqrt"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+fig.savefig(images_folder+"scatter_shoredistsqrt"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
 feature = np.sin(np.radians(map_shoredirection[unmask_include].flatten()))
@@ -397,7 +399,7 @@ ax_precip_sind.plot(feature, target, marker='o', linestyle='', ms=2)
 ax_precip_sind.set_xlabel('Sin Direction to Shore')
 ax_precip_sind.set_ylabel(target_label)
 ax_precip_sind.set_title('Precipitation versus Sin of Direction to Shore during Miocene')
-fig.savefig(images_folder+"scatter_shoresind_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+fig.savefig(images_folder+"scatter_shoresind_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
 feature = np.cos(np.radians(map_shoredirection[unmask_include].flatten()))
@@ -406,7 +408,7 @@ ax_precip_cosd.plot(feature, target, marker='o', linestyle='', ms=2)
 ax_precip_cosd.set_xlabel('Cos Direction to Shore')
 ax_precip_cosd.set_ylabel(target_label)
 ax_precip_cosd.set_title('Precipitation versus Cos of Direction to Shore during Miocene')
-fig.savefig(images_folder+"scatter_shorecosd_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+fig.savefig(images_folder+"scatter_shorecosd_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
 feature = mapbin_deposits_coal[unmask_include].flatten()
@@ -416,7 +418,7 @@ sns.violinplot(x=presence, y=target, ax=ax_precip_coal)
 ax_precip_coal.set_xlabel('Coal')
 ax_precip_coal.set_ylabel(target_label)
 ax_precip_coal.set_title('Precipitation versus Presence of Coal during Miocene')
-fig.savefig(images_folder+"violin_coal_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+fig.savefig(images_folder+"violin_coal_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
 feature = mapbin_deposits_evaporites[unmask_include].flatten()
@@ -426,7 +428,7 @@ sns.violinplot(x=presence, y=target, ax=ax_precip_evaporites)
 ax_precip_evaporites.set_xlabel('Evaporites')
 ax_precip_evaporites.set_ylabel(target_label)
 ax_precip_evaporites.set_title('Precipitation versus Presence of Evaporites during Miocene')
-fig.savefig(images_folder+"violin_evaporites_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+fig.savefig(images_folder+"violin_evaporites_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
 feature = mapbin_deposits_glacial[unmask_include].flatten()
@@ -436,7 +438,7 @@ sns.violinplot(x=presence, y=target, ax=ax_precip_glacial)
 ax_precip_glacial.set_xlabel('Glacial')
 ax_precip_glacial.set_ylabel(target_label)
 ax_precip_glacial.set_title('Precipitation versus Presence of Glacial during Miocene')
-fig.savefig(images_folder+"violin_glacial_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.2)
+fig.savefig(images_folder+"violin_glacial_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.2)
 plt.close(fig)
 
 # 2D scatterplot
@@ -450,7 +452,7 @@ plt.colorbar(sc)
 ax_precip_featfeat.set_xlabel('Elevation')
 ax_precip_featfeat.set_ylabel('Distance to Shore')
 ax_precip_featfeat.set_title(target_label + ' vs Predictors')
-fig.savefig(images_folder+"scatter_elevdist_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"scatter_elevdist_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 feature1 = map_elevation_sqrt[unmask_include].flatten()
@@ -461,7 +463,7 @@ plt.colorbar(sc)
 ax_precip_featfeat.set_xlabel('Sqrt Elevation')
 ax_precip_featfeat.set_ylabel('Sqrt Distance to Shore')
 ax_precip_featfeat.set_title(target_label + ' vs Predictors')
-fig.savefig(images_folder+"scatter_elevdistsqrt_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"scatter_elevdistsqrt_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 feature1 = np.sin(np.radians(map_shoredirection[unmask_include].flatten()))
@@ -472,7 +474,7 @@ plt.colorbar(sc)
 ax_precip_featfeat.set_xlabel('Sin Direction to Shore')
 ax_precip_featfeat.set_ylabel('Distance to Shore')
 ax_precip_featfeat.set_title(target_label + ' vs Predictors')
-fig.savefig(images_folder+"scatter_sinddist_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"scatter_sinddist_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 feature1 = np.cos(np.radians(map_shoredirection[unmask_include].flatten()))
@@ -483,7 +485,7 @@ plt.colorbar(sc)
 ax_precip_featfeat.set_xlabel('Cos Direction to Shore')
 ax_precip_featfeat.set_ylabel('Distance to Shore')
 ax_precip_featfeat.set_title(target_label + ' vs Predictors')
-fig.savefig(images_folder+"scatter_cosddist_"+target_suffix+".png", bbox_inches='tight', pad_inches=0.3)
+fig.savefig(images_folder+"scatter_cosddist_"+target_suffix+".pdf", bbox_inches='tight', pad_inches=0.3)
 plt.close(fig)
 
 
