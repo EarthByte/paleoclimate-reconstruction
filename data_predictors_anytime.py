@@ -34,14 +34,6 @@ rcParams['figure.dpi']= fig_dpi
 print("Hello Precipitation Modelling")
 
 
-# USER CHOICES
-# Geological time period of interest
-epoch_name = 'LateCretaceous'
-# Subset of Data
-data_subset = 'land'    # choose only locations over land or shallow-marine areas with deposits
-#data_subset = 'deposit' # choose only locations where some type of deposit has been found
-
-
 
 # ## Input/Output Datasets
 data_folder = 'data/'
@@ -92,57 +84,38 @@ key_deposits  = pd.read_csv(key_deposits_filename)
 dict_deposits = dict(zip(key_deposits.loc[:,'LithologyCode'], key_deposits.loc[:,'LithologyType']))
 time_deposits = data_deposits.loc[:,'ReconstructionTime'].copy()
 
-
-def get_time(epoch_name):
-    if epoch_name=='Miocene':
-        epoch_time_min = 5.33
-        epoch_time_max = 23.03
-        epoch_time_mid = 14.15
-    elif epoch_name=='Oligocene':
-        epoch_time_min = 23.03
-        epoch_time_max = 33.9
-        epoch_time_mid = 27.8
-    elif epoch_name=='Eocene':
-        epoch_time_min = 33.9
-        epoch_time_max = 56.0
-        epoch_time_mid = 47.8
-    elif epoch_name=='Paleocene':
-        epoch_time_min = 56.0
-        epoch_time_max = 66.0
-        epoch_time_mid = 61.0
-    elif epoch_name=='LateCretaceous':
-        epoch_time_min = 66.0
-        epoch_time_max = 100.5
-        epoch_time_mid = 86.3
-    else:
-        raise ValueError('I dont recognise that epoch name!')
-    return epoch_time_min, epoch_time_max, epoch_time_mid
+all_epochs_int = []
+for ep in pd.to_numeric(time_deposits).tolist(): 
+    #if((6<ep) and (ep<395)):
+    if((6<ep) and (ep<251.9)): # lower bound due to GPlates code, upper bound Permian
+        all_epochs_int.append(int(ep))
+all_epochs_int = set(all_epochs_int)
+print(all_epochs_int)
 
 
 # ## GET sedimentary deposits data
 def get_deposits(epoch_time_min, epoch_time_max, time_deposits, data_deposits):
     epoch_rows_deposits = (epoch_time_min < time_deposits) & (time_deposits < epoch_time_max)
     epoch_deposits = data_deposits.loc[epoch_rows_deposits,:].copy()
+    print("Number of deposits at this epoch = ",sum(epoch_rows_deposits))
     return epoch_deposits
-#try:
-#    epoch_time = epoch_time_mid
-#except:
-#    epoch_time = time_deposits.loc[epoch_rows_deposits].iloc[0]
 
 
 # ## PLOT sedimentary deposits data
-def plot_deposits_scatter(epoch_deposits, epoch_name, output_folder):
+def plot_deposits_scatter(epoch_deposits, epoch_name, dict_deposits, output_folder):
     fig = plt.figure(figsize=(16,8))
     ax_deposits = fig.add_subplot(111)
     epoch_deposits_grouped = epoch_deposits.groupby('LithologyCode')
-    for deposit_type, deposit in epoch_deposits_grouped:
-        ax_deposits.plot(deposit.Paleolongitude, deposit.Paleolatitude, marker='o', linestyle='', ms=3, label=dict_deposits[deposit_type])
+    for deposit_code, deposit in epoch_deposits_grouped:
+        if deposit_code in dict_deposits:
+            ax_deposits.plot(deposit.Paleolongitude, deposit.Paleolatitude, marker='o', linestyle='', ms=3, label=dict_deposits[deposit_code])
     ax_deposits.set_xlabel('Paleolongitude')
     ax_deposits.set_ylabel('Paleolatitude')
     ax_deposits.set_title('Climate-Sensitive Lithologic Deposits from the '+epoch_name)
     ax_deposits.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     ax_deposits.axis('scaled')
     fig.savefig(output_folder+"scatter_deposits_"+epoch_name+".png", dpi=fig_dpi, bbox_inches='tight', pad_inches=0.3)
+    plt.close(fig)
 
 def map_deposits_gridded(epoch_deposits, epoch_name, output_folder, lon_coords, lat_coords, lon_spacing, lat_spacing, nlatbins, nlonbins):
     # ### Coal
@@ -167,6 +140,7 @@ def map_deposits_gridded(epoch_deposits, epoch_name, output_folder, lon_coords, 
     ax_deposits_coal.set_ylabel('Paleolatitude')
     ax_deposits_coal.set_title('Presence of coal deposits during '+epoch_name)
     fig.savefig(output_folder+"map_deposits_coal_"+epoch_name+".png", bbox_inches='tight', pad_inches=0.3)
+    plt.close(fig)
     # ### Evaporites
     evaporites_rows = [False]*epoch_deposits.shape[0]
     evaporites_codes = ['E','CA']
@@ -189,6 +163,7 @@ def map_deposits_gridded(epoch_deposits, epoch_name, output_folder, lon_coords, 
     ax_deposits_evaporites.set_ylabel('Paleolatitude')
     ax_deposits_evaporites.set_title('Presence of evaporite deposits during '+epoch_name)
     fig.savefig(output_folder+"map_deposits_evaporites_"+epoch_name+".png", bbox_inches='tight', pad_inches=0.3)
+    plt.close(fig)
     # ### Glacial
     glacial_rows = [False]*epoch_deposits.shape[0]
     glacial_codes = ['G','T','D']
@@ -211,6 +186,7 @@ def map_deposits_gridded(epoch_deposits, epoch_name, output_folder, lon_coords, 
     ax_deposits_glacial.set_ylabel('Paleolatitude')
     ax_deposits_glacial.set_title('Presence of glacial deposits during '+epoch_name)
     fig.savefig(output_folder+"map_deposits_glacial_"+epoch_name+".png", bbox_inches='tight', pad_inches=0.3)
+    plt.close(fig)
     # return
     return {'coal':mapbin_deposits_coal, 'evap':mapbin_deposits_evaporites, 'glac':mapbin_deposits_glacial}
 
@@ -242,16 +218,17 @@ def make_masks(nlonbins, nlatbins, shoreline_results, output_folder, epoch_name,
     ax_overland.set_ylabel('Paleolatitude')
     ax_overland.set_title('Distribution of land-mass during '+epoch_name)
     fig.savefig(output_folder+"map_overland_"+epoch_name+".png", bbox_inches='tight', pad_inches=0.3)
+    plt.close(fig)
     mapbin_deposits_coal, mapbin_deposits_evaporites, mapbin_deposits_glacial = mapbins['coal'], mapbins['evap'], mapbins['glac']
     unmask_deposits = (mapbin_deposits_coal.astype(bool) | mapbin_deposits_evaporites.astype(bool)) | mapbin_deposits_glacial.astype(bool)
     unmask_overland = map_overland_binary.astype(bool)
     unmask_LandOrDeposits = unmask_overland | unmask_deposits
-    unmask_deposits_shallowmarine = unmask_deposits & np.invert(unmask_overland)
-    return unmask_deposits_shallowmarine, unmask_deposits, unmask_LandOrDeposits
+    unmask_deposits_shallow = unmask_deposits & np.invert(unmask_overland)
+    return unmask_deposits_shallow, unmask_deposits, unmask_LandOrDeposits
 
 
 
-def make_map_shore(nlonbins, nlatbins, shoreline_results, unmask_deposits_shallowmarine, mask_exclude, output_folder, epoch_name):
+def make_map_shore(nlonbins, nlatbins, shoreline_results, unmask_deposits_shallow, mask_exclude, output_folder, epoch_name):
     shoredist = np.zeros((nlonbins*nlatbins))
     shoredirc = np.zeros((nlonbins*nlatbins))
     print('Shoreline ...')
@@ -261,8 +238,8 @@ def make_map_shore(nlonbins, nlatbins, shoreline_results, unmask_deposits_shallo
     map_shore_distance  = shoredist.reshape((nlatbins,nlonbins))
     map_shore_direction = shoredirc.reshape((nlatbins,nlonbins))
     # fix shallow areas
-    map_shore_distance[unmask_deposits_shallowmarine] = 0
-    map_shore_direction[unmask_deposits_shallowmarine] = map_shore_direction[unmask_deposits_shallowmarine] - 180.
+    map_shore_distance[unmask_deposits_shallow] = 0
+    map_shore_direction[unmask_deposits_shallow] = map_shore_direction[unmask_deposits_shallow] - 180.
     # PLOT Distance
     cmap_shoredist = sns.cubehelix_palette(8, start=2., rot=-.3, dark=0.3, light=0.7, reverse=True, as_cmap=True)
     fig = plt.figure(figsize=(18,6))
@@ -273,18 +250,19 @@ def make_map_shore(nlonbins, nlatbins, shoreline_results, unmask_deposits_shallo
     ax_shoredist.set_ylabel('Paleolatitude')
     ax_shoredist.set_title('Distance to shoreline during '+epoch_name)
     fig.savefig(output_folder+"map_shoredist_"+epoch_name+".png", bbox_inches='tight', pad_inches=0.3)
+    plt.close(fig)
     return map_shore_distance, map_shore_direction
 
 
 
-def make_map_elevation(nlonbins, nlatbins, topography_results, unmask_deposits_shallowmarine, mask_exclude, output_folder, epoch_name):
+def make_map_elevation(nlonbins, nlatbins, topography_results, unmask_deposits_shallow, mask_exclude, output_folder, epoch_name):
     print('Topography/Elevation...')
     elevation_arr = np.zeros((nlonbins*nlatbins))
     for idx, height in enumerate(topography_results):
         elevation_arr[idx] = height
     map_elevation = elevation_arr.reshape((nlatbins,nlonbins))
     # fix shallow areas
-    map_elevation[unmask_deposits_shallowmarine] = 0
+    map_elevation[unmask_deposits_shallow] = 0
     # PLOT Elevation
     cmap_elevation = sns.cubehelix_palette(8, start=1.7, rot=.35, dark=0.4, light=0.9, reverse=True, as_cmap=True)
     fig, ax_elevation_mask = plt.subplots(figsize=(18,6))            
@@ -294,61 +272,67 @@ def make_map_elevation(nlonbins, nlatbins, topography_results, unmask_deposits_s
     ax_elevation_mask.set_ylabel('Paleolatitude')
     ax_elevation_mask.set_title('Height/Depth above/below sea-level during '+epoch_name)
     fig.savefig(output_folder+"map_elevation_"+epoch_name+".png", bbox_inches='tight', pad_inches=0.3)
+    plt.close(fig)
     return map_elevation
 
 
 
+def writeout_data(data_folder, epoch_name, data_subset, lon_coords, lat_coords, mask_exclude, mapbins, map_elevation, map_shore_distance, map_shore_direction):
+    # ## Reformat data for GP predicting code
+    print("Reformatting data for GP modelling...")
+    mapbin_deposits_coal, mapbin_deposits_evaporites, mapbin_deposits_glacial = mapbins['coal'], mapbins['evap'], mapbins['glac']
+    with open(data_folder+'predictor_data_'+epoch_name+'_'+data_subset+'.csv','wb') as csvfile:
+        wr = csv.writer(csvfile)
+        wr.writerow(['region_id', 'centroid_x', 'centroid_y',
+                     'Coal Deposits', 'Evaporites Deposits', 'Glacial Deposits', 
+                     'Elevation', 'Sqrt Elevation', 'Dist to Shore', 'Sqrt Dist', 'Sin Angle Shore', 'Cos Angle Shore'])
+        ridx = 0
+        for ilon,lon in enumerate(lon_coords):
+            lonm = lon + 0.5*lon_spacing
+            for ilat,lat in enumerate(lat_coords):
+                latm = lat + 0.5*lat_spacing[ilat]
+                include_point = np.invert(mask_exclude[nlatbins-ilat-1,ilon])
+                if(include_point):
+                    coal = mapbin_deposits_coal[nlatbins-ilat-1,ilon]
+                    evap = mapbin_deposits_evaporites[nlatbins-ilat-1,ilon]
+                    glac = mapbin_deposits_glacial[nlatbins-ilat-1,ilon]
+                    elev = max(map_elevation[nlatbins-ilat-1,ilon],0)
+                    dist = map_shore_distance[nlatbins-ilat-1,ilon]
+                    dird = map_shore_direction[nlatbins-ilat-1,ilon]
+                    dirr = radians(dird)
+                    row_fpos  = [latm, lonm]
+                    row_ideps = [coal, evap, glac]
+                    row_fcovs = [elev, sqrt(elev), dist, sqrt(dist), sin(dirr), cos(dirr)]
+                    row_check = row_fpos + row_ideps + row_fcovs
+                    if not np.isnan(row_check).any():
+                        ridx = ridx + 1
+                        row_fpos_short  = map(lambda num: "%.2f"%num , row_fpos)
+                        row_fcovs_short = map(lambda num: "%.2f"%num , row_fcovs)
+                        row_info = [ridx] + row_fpos_short + row_ideps + row_fcovs_short
+                        wr.writerow(row_info)
+
+
+
+
 # CALL FUNCTIONS
-epoch_time_min, epoch_time_max, epoch_time = get_time(epoch_name)
-epoch_deposits = get_deposits(epoch_time_min, epoch_time_max, time_deposits, data_deposits)
-plot_deposits_scatter(epoch_deposits, epoch_name, images_folder)
-mapbins = map_deposits_gridded(epoch_deposits, epoch_name, images_folder, lon_coords, lat_coords, lon_spacing, lat_spacing, nlatbins, nlonbins)
-shoreline_results, topography_results = get_qpg_results(epoch_time, nlonbins, nlatbins, lon_coords, lat_coords, lon_spacing, lat_spacing)
-unmask_deposits_shallowmarine, unmask_deposits, unmask_LandOrDeposits = make_masks(nlonbins, nlatbins, shoreline_results, images_folder, epoch_name, mapbins)
-if data_subset == 'land':
-    mask_exclude = np.invert(unmask_LandOrDeposits) # larger dataset
-elif data_subset == 'deposit':
-    mask_exclude = np.invert(unmask_deposits) # smaller dataset
-else:
-    raise ValueError('I dont recognise that data subset!')
-map_shore_distance, map_shore_direction = make_map_shore(nlonbins, nlatbins, shoreline_results, unmask_deposits_shallowmarine, mask_exclude, images_folder, epoch_name)
-map_elevation = make_map_elevation(nlonbins, nlatbins, topography_results, unmask_deposits_shallowmarine, mask_exclude, images_folder, epoch_name)
-
-
-
-# ## Reformat data for GP predicting code
-print("Reformatting data for GP modelling...")
-mapbin_deposits_coal, mapbin_deposits_evaporites, mapbin_deposits_glacial = mapbins['coal'], mapbins['evap'], mapbins['glac']
-with open(data_folder+'predictor_data_'+epoch_name+'_'+data_subset+'.csv','wb') as csvfile:
-    wr = csv.writer(csvfile)
-    wr.writerow(['region_id',
-                 'centroid_x', 'centroid_y',
-                 'Coal Deposits', 'Evaporites Deposits', 'Glacial Deposits', 
-                 'Elevation', 'Sqrt Elevation', 'Dist to Shore', 'Sqrt Dist', 'Sin Angle Shore', 'Cos Angle Shore'])
-    ridx = 0
-    for ilon,lon in enumerate(lon_coords):
-        lonm = lon + 0.5*lon_spacing
-        for ilat,lat in enumerate(lat_coords):
-            latm = lat + 0.5*lat_spacing[ilat]
-            include_point = np.invert(mask_exclude[nlatbins-ilat-1,ilon])
-            if(include_point):
-                coal = mapbin_deposits_coal[nlatbins-ilat-1,ilon]
-                evap = mapbin_deposits_evaporites[nlatbins-ilat-1,ilon]
-                glac = mapbin_deposits_glacial[nlatbins-ilat-1,ilon]
-                elev = map_elevation[nlatbins-ilat-1,ilon]
-                if elev<0:
-                    elev = 0.
-                dist = map_shore_distance[nlatbins-ilat-1,ilon]
-                dird = map_shore_direction[nlatbins-ilat-1,ilon]
-                dirr = radians(dird)
-                row_fpos  = [latm, lonm]
-                row_ideps = [coal, evap, glac]
-                row_fcovs = [elev, sqrt(elev), dist, sqrt(dist), sin(dirr), cos(dirr)]
-                row_check = row_fpos + row_ideps + row_fcovs
-                if not np.isnan(row_check).any():
-                    ridx = ridx + 1
-                    row_fpos_short  = map(lambda num: "%.2f"%num , row_fpos)
-                    row_fcovs_short = map(lambda num: "%.2f"%num , row_fcovs)
-                    row_info = [ridx] + row_fpos_short + row_ideps + row_fcovs_short
-                    wr.writerow(row_info)
+for epoch_time in all_epochs_int:
+    epoch_time_min = epoch_time - 1
+    epoch_time_max = epoch_time + 1
+    epoch_name = str(epoch_time)+'Ma'
+    print(epoch_name)
+    epoch_deposits = get_deposits(epoch_time_min, epoch_time_max, time_deposits, data_deposits)
+    plot_deposits_scatter(epoch_deposits, epoch_name, dict_deposits, images_folder)
+    mapbins = map_deposits_gridded(epoch_deposits, epoch_name, images_folder, lon_coords, lat_coords, lon_spacing, lat_spacing, nlatbins, nlonbins)
+    shoreline_results, topography_results = get_qpg_results(epoch_time, nlonbins, nlatbins, lon_coords, lat_coords, lon_spacing, lat_spacing)
+    unmask_deposits_shallow, unmask_deposits, unmask_LandOrDeposits = make_masks(nlonbins, nlatbins, shoreline_results, images_folder, epoch_name, mapbins)
+    for data_subset in ['land','deposit']:
+        if data_subset == 'land': # choose only locations over land or shallow-marine areas with deposits
+            mask_exclude = np.invert(unmask_LandOrDeposits) # larger dataset
+        elif data_subset == 'deposit': # choose only locations where some type of deposit has been found
+            mask_exclude = np.invert(unmask_deposits) # smaller dataset
+        else:
+            raise ValueError('I dont recognise that data subset!')
+        map_shore_distance, map_shore_direction = make_map_shore(nlonbins, nlatbins, shoreline_results, unmask_deposits_shallow, mask_exclude, images_folder, epoch_name)
+        map_elevation = make_map_elevation(nlonbins, nlatbins, topography_results, unmask_deposits_shallow, mask_exclude, images_folder, epoch_name)
+        writeout_data(data_folder, epoch_name, data_subset, lon_coords, lat_coords, mask_exclude, mapbins, map_elevation, map_shore_distance, map_shore_direction)
 
