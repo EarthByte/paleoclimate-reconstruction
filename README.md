@@ -4,9 +4,8 @@ Paleo-Climate Precipitation Reconstruction using Bayesian Machine Learning
 The main goal of the project is to model global precipitation using geological indicators (including location on continent and sedimentary deposits).
 
 We have available to us the following datasets:
-- non-regularly distributed climate-sensitive sedimentary deposits across geologic time (separated on scales of 10-20 million years) and their associated reconstructed geographical location `data/LithData_PaleoXY_Matthews2016_20180226.csv`
+- a database of non-regularly distributed climate-sensitive sedimentary deposits across geologic time (separated on scales of 10-20 million years) and their associated reconstructed geographical location `data/LithData_PaleoXY_Matthews2016_20180226.csv`
 - a dictionary used to translate the lithology codes `data/LithologyCodes.csv`
-and the following simulated results:
 - global rainfall modelled at 2.5 deg resolution during Miocene (Herold+ 2012) `data/PRECT_Average_annum.grd`
 - GPlates simulation of continental plates and topology across geologic time (local installation)
 
@@ -24,7 +23,7 @@ Run
 ```
 python data_preprocess_miocene.py
 ```
-This code uses the Lithology database and precipitation simulation output in the `data/` folder and creates:
+This code uses the deposit database, lithology dictionary, and precipitation simulation output in the `data/` folder and creates:
 * gridded input data maps in `data/images/`
 * input data file: `data/precipitation_gpmodel_data.csv`
 
@@ -53,7 +52,7 @@ Run
 ```
 python data_predictors_anytime.py
 ```
-This code uses the Lithology database in the `data/` folder and creates:
+This code uses the deposit database and lithology dictionary in the `data/` folder and creates:
 * gridded input data maps in `data/images/`
 * input data files: `data/predictor_data_XXX_YYY.csv`
 
