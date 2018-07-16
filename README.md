@@ -24,7 +24,7 @@ Run
 ```
 python data_preprocess_miocene.py
 ```
-This code uses the Lithology database and precipitation simulation output in the data/ folder and creates:
+This code uses the Lithology database and precipitation simulation output in the `data/` folder and creates:
 * gridded input data maps in `data/images/`
 * input data file: `data/precipitation_gpmodel_data.csv`
 
@@ -53,13 +53,13 @@ Run
 ```
 python data_predictors_anytime.py
 ```
-creates
+This code uses the Lithology database in the `data/` folder and creates:
 * gridded input data maps in `data/images/`
 * input data files: `data/predictor_data_XXX_YYY.csv`
 
 where 
 
-* XXX is the each geological epoch listed in the deposit database between 6Ma and 251Ma
+* XXX is the each geological epoch listed in the deposit database between 6Ma (lower limit for the plate reconstruction query) and 251Ma (Permian)
 * YYY is either `land` or `deposit`
   * for files with identifier `land`, the dataset will include all points on land (or shallow marine areas that contain deposits)
   * for files with identifier `deposit`, the dataset will include all points where some type of deposit has been found
