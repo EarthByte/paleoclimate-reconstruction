@@ -23,9 +23,10 @@ Run
 ```sh 
 python data_preprocess_miocene.py
 ```
-creates
+This code uses the Lithology database and precipitation simulation output in the data/ folder and creates:
 * gridded input data maps in data/images/
 * precipitation_gpmodel_data.csv in data/
+Note: the plate reconstruction queried in this code is designed specifically for the Miocene and is consistent with the (Miocene) precipitation output. Therefore the output csv file is most appropriate for learning.
 
 
 ## Step 2: Bayesian modelling
@@ -45,12 +46,14 @@ Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Cha
 ## Step 3: Prediction Input Data
 Run
 ```sh 
-python data_predictors_data_anygeotimes.py
+python data_predictors_anytime.py
 ```
 creates
 * gridded input data maps in data/images/
 * predictor_data_XXX_YYY.csv in data/
-where XXX is the geological epoch and YYY is either land or deposit
+where 
+* XXX is the each geological epoch listed in the deposit database between 6Ma and 251Ma
+* YYY is either land or deposit. 
 
 
  
