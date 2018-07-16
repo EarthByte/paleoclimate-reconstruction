@@ -18,7 +18,7 @@ We have available to us the following datasets:
 * install GMT
   * Note that both the pyGPlates and query_paleogeography folders will need to be in the PYTHONPATH (the pyGPlates documentation talks about this).
 
-## Step 1: Pre-processing raw data
+## Step 1: Pre-processing data for learning
 Run
 ```
 python data_preprocess_miocene.py
@@ -47,7 +47,7 @@ Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Cha
 * removal of dropout flag (was never used)
 
 
-## Step 3: Prediction Input Data
+## Step 3: Pre-process data for prediction
 Run
 ```
 python data_predictors_anytime.py
