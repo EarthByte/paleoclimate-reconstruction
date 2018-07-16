@@ -61,8 +61,8 @@ where
 
 * XXX is the each geological epoch listed in the deposit database between 6Ma and 251Ma
 * YYY is either `land` or `deposit`
-  *for files with identifier `land`, the dataset will include all points on land (or shallow marine areas that contain deposits)
-  *for files with identifier `deposit`, the dataset will include all points where some type of deposit has been found
+  * for files with identifier `land`, the dataset will include all points on land (or shallow marine areas that contain deposits)
+  * for files with identifier `deposit`, the dataset will include all points where some type of deposit has been found
 
 _Note: these files will be created locally but are not to be pushed to the online repository_
 
