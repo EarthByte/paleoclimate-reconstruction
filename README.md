@@ -29,7 +29,7 @@ This should take about 4 minutes. The code uses the deposit database, lithology 
 
 where 
 
-* YYY is either `land` or `deposit`
+* YYY is either `land` or `deposit` (corresponding to `data_subset` the user-set variable within the code)
   * for files with identifier `land`, the dataset will include all points on land (or shallow marine areas that contain deposits)
   * for files with identifier `deposit`, the dataset will include all points where some type of deposit has been found
 
