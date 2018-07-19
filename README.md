@@ -23,9 +23,15 @@ Run
 ```
 python data_preprocess_miocene.py
 ```
-This code uses the deposit database, lithology dictionary, and precipitation simulation output in the `data/` folder and creates:
+This should take about 4 minutes. The code uses the deposit database, lithology dictionary, and precipitation simulation output in the `data/` folder and creates:
 * gridded input data maps in `data/images/`
-* input data file: `data/precipitation_gpmodel_data.csv`
+* input data file: `data/learning_data_miocene_YYY.csv`
+
+where 
+
+* YYY is either `land` or `deposit`
+  * for files with identifier `land`, the dataset will include all points on land (or shallow marine areas that contain deposits)
+  * for files with identifier `deposit`, the dataset will include all points where some type of deposit has been found
 
 _Note: these files will be created locally but are not to be pushed to the online repository_
 
