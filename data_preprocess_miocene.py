@@ -33,6 +33,10 @@ rcParams['figure.dpi']= fig_dpi
 
 print("Hello Precipitation Modelling")
 
+
+data_subset = 'deposit' # or 'land'
+
+
 # ## Input/Output Datasets
 data_folder = "data/"
 data_deposits_filename = data_folder+"LithData_PaleoXY_Matthews2016_20180226.csv"
@@ -241,12 +245,21 @@ plt.close(fig)
 unmask_overland = map_overland_binary.astype(bool)
 unmask_deposits = (mapbin_deposits_coal.astype(bool) | mapbin_deposits_evaporites.astype(bool)) | mapbin_deposits_glacial.astype(bool)
 mask_nodeposits = np.invert(unmask_deposits)
-unmask_include = unmask_deposits.copy() #(unmask_overland | unmask_deposits) & unmask_deposits
-mask_exclude = np.invert(unmask_include)
-unmask_deposits_shallowmarine = unmask_deposits & np.invert(unmask_overland)
-map_shoredistance[unmask_deposits_shallowmarine] = 0
-map_shoredirection[unmask_deposits_shallowmarine] = map_shoredirection[unmask_deposits_shallowmarine] - 180.
+unmask_LandOrDeposits = unmask_overland | unmask_deposits
+unmask_deposits_shallow = unmask_deposits & np.invert(unmask_overland)
+
+map_shoredistance[unmask_deposits_shallow] = 0
+map_shoredirection[unmask_deposits_shallow] = map_shoredirection[unmask_deposits_shallow] - 180.
 map_shoredistance_sqrt  = np.sqrt(map_shoredistance)
+
+
+if data_subset == 'land': # choose only locations over land or shallow-marine areas with deposits
+    mask_exclude = np.invert(unmask_LandOrDeposits) # larger dataset
+elif data_subset == 'deposit': # choose only locations where some type of deposit has been found
+    mask_exclude = np.invert(unmask_deposits) # smaller dataset
+else:
+    raise ValueError('I dont recognise that data subset!')
+unmask_include = np.invert(mask_exclude)
 
 
 # REPLOT (Distance, Deposits)
@@ -318,10 +331,9 @@ for idx, height in enumerate(topography_results):
     elevation_arr[idx] = height
 map_elevation      = elevation_arr.reshape((nlatbins,nlonbins))
 map_elevation[map_elevation<0] = 0. # recalibrate to ignore shallow areas underwater
-map_elevation_sqrt = map_elevation.copy()
-map_elevation_sqrt[map_elevation>=0] = np.sqrt(map_elevation_sqrt[map_elevation>=0])
-#map_elevation[unmask_deposits_shallowmarine] = 0
-#cmap_elevation = sns.diverging_palette(240, 20, s=85, l=28, n=9)
+map_elevation_sqrt = np.sqrt(map_elevation)
+#map_elevation_sqrt = map_elevation.copy()
+#map_elevation_sqrt[map_elevation>=0] = np.sqrt(map_elevation_sqrt[map_elevation>=0])
 cmap_elevation = sns.cubehelix_palette(8, start=0.5, rot=-.3, dark=0.3, light=0.7, as_cmap=True)
 
 
@@ -492,7 +504,8 @@ plt.close(fig)
 
 # ## Reformat data for GP modelling code
 print("Reformatting data for GP modelling...")
-with open(data_folder+'precipitation_gpmodel_data.csv','wb') as csvfile:
+#with open(data_folder+'precipitation_gpmodel_data.csv','wb') as csvfile:
+with open(data_folder+'learning_data_miocene_'+data_subset+'.csv','wb') as csvfile:
     wr = csv.writer(csvfile)
     wr.writerow(['region_id',
                  'centroid_x', 'centroid_y', 'Precipitation', 'Log10 Precipitation', 
@@ -503,8 +516,8 @@ with open(data_folder+'precipitation_gpmodel_data.csv','wb') as csvfile:
         lonm = lon + 0.5*lon_spacing
         for ilat,lat in enumerate(lat_coords):
             latm = lat + 0.5*lat_spacing[ilat]
-            land_here = unmask_include[nlatbins-ilat-1,ilon]
-            if(land_here):
+            include_point = np.invert(mask_exclude[nlatbins-ilat-1,ilon])
+            if(include_point):
                 prec = map_precipitation[nlatbins-ilat-1,ilon]
                 logp = map_log10precip[nlatbins-ilat-1,ilon]
                 ablt = abs(latm)
