@@ -72,4 +72,15 @@ where
 _Note: these files will be created locally but are not to be pushed to the online repository_
 
 
- 
+## Step 4: Predict things
+*Insert code for prediction*
+
+
+## Step 5: Plot predictions
+Run
+```
+python plot_prediction.py <relative path to input file> <one-word subject descriptor>
+```
+This code creates:
+* gridded prediction and uncertainty maps within `predictions/`
+
