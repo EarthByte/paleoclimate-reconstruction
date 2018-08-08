@@ -253,6 +253,12 @@ class GPMC:
 
 
     def calc_covariance_matrix(self, data, p, sigma):
+        """ Calculates Covariance Matrix for Exponential Square Kernel
+        :param data: array with rows of locations with columns of latitude & longitude
+        :param p: vector of logarithms of each hyperparameter
+        :param sigma: white noise
+        :return: covariance matrix
+        """
         pos = data.copy()
         mag = np.exp(p[0])
         scx = np.exp(p[1])
