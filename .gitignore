@@ -10,11 +10,11 @@ README.md~
 
 
 # images & documents
-*.pdf
-*.png
-*.ps
-*.eps
-*.csv
+#*.pdf
+#*.png
+#*.ps
+#*.eps
+#*.csv
 
 # Mac related
 .DS_Store
