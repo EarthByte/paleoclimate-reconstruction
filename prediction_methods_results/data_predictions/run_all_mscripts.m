@@ -23,17 +23,19 @@ clear
 
 % Predict for the rest
 
-x = [  "51", "61", "77", "101", "129", "154", "182", "219", "242", "249", "28"]
- 
- 
+x = [ "28", "51", "61", "77", "101", "129", "154", "182", "219", "242", "249"]
 
+
+ 
+ 
+  
 for i=1:11
 fname =  x(i)+"Ma_/data/predictor_data_land.csv"
 outfname =  x(i)+"Ma_/results/deposit_results.csv"
 outfname2 =  x(i)+"Ma_/results/deposit_input.csv"
 accuracyfile = x(i)+"Ma_/results/mis_class.csv"
 
-%predict_missingdeposits(fname, outfname, outfname2, accuracyfile)
+predict_missingdeposits(fname, outfname, outfname2, accuracyfile)
 
 fname_in = x(i)+"Ma_/data/Xlin_14Ma_input.csv"
 fname_in2 = x(i)+"Ma_/data/miocene_precip_v1.csv"
