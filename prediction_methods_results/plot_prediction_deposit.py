@@ -59,9 +59,7 @@ subject = str(sys.argv[3])
   
   
 predictions = pd.read_csv(prediction_file, header=None)
-
-print(predictions)
-
+ 
   
 latitudes     = predictions.loc[:,0]
 longitudes    = predictions.loc[:,1]
@@ -147,8 +145,8 @@ if subject == 'evaporites':
     print(subject, ' is subject')
 
 
-
-print(predictions)
+ 
+ 
 
 # what happens if there are (fixed by David Kohn)
 # multiple longitudes and latitudes

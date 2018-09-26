@@ -38,7 +38,7 @@ print("   Begin *******                   ********           *********  ")
 
 
 # USER CHOICES
-if(len(sys.argv)!=4):
+if(len(sys.argv)!=5):
     sys.exit('Usage:  input problem no. samples.   see run.sh')
 
  
@@ -48,6 +48,8 @@ predict_folder = str(sys.argv[1])
 
 
 predict_filename = str(sys.argv[2])
+
+
 
 directory_plot =  predict_folder+"/precitmap"
 
@@ -60,6 +62,9 @@ prediction_file = predict_folder +'/' + predict_filename  # example only
 print("Prediction file path: %s"%(prediction_file))
  
 subject = str(sys.argv[3])
+
+
+type_pred = str(sys.argv[4])
  
 
  
@@ -184,20 +189,6 @@ for ilon,lon_low in enumerate(lon_coords):
 #print(list_actual)
 
 
- 
-fig, ax_prec_pred = plt.subplots(figsize=(18,6))
-fig.tight_layout()
-fig.subplots_adjust(right=0.9)
-cmap = sns.cubehelix_palette(8, start=0.65, rot=-0.9, light=0.9, as_cmap=True)
-cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
-ax_prec_pred.set_title('Actual values -  '+subject)
-sns.heatmap(map_predict_actual, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_pred, cbar_ax=cbar_ax)
-ax_prec_pred.set_xlabel('Paleolongitude', labelpad=10)
-ax_prec_pred.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_actual_"+subject+".pdf", pad_inches=0.6)
-fig.clf() 
- 
-
 print("minimum mean prediction is "+str(np.ma.array(list(map_predict_mean),mask=mask_exclude).min()))
 print("maximum mean prediction is "+str(np.ma.array(list(map_predict_mean),mask=mask_exclude).max()))
 fig, ax_prec_pred = plt.subplots(figsize=(18,6))
@@ -214,42 +205,7 @@ fig.savefig(directory_plot+"/map_prediction_"+subject+".pdf", pad_inches=0.6)
 
 fig.clf() 
 
-
-
-print("minimum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).min()))
-print("maximum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).max()))
-fig, ax_prec_unct = plt.subplots(figsize=(18,6))
-fig.tight_layout()
-fig.subplots_adjust(right=0.9)
-cmap = sns.cubehelix_palette(8, start=0., rot=0.4, as_cmap=True)
-cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
-ax_prec_unct.set_title('Uncertainty in Prediction for '+subject)
-sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
-ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
-ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_prediction_uncert_"+subject+".pdf", pad_inches=0.6)
-
-fig.clf() 
-
-print("minimum uncertainty is "+str(np.ma.array(list(map_predict_diff),mask=mask_exclude).min()))
-print("maximum uncertainty is "+str(np.ma.array(list(map_predict_diff),mask=mask_exclude).max()))
-fig, ax_prec_unct = plt.subplots(figsize=(18,6))
-fig.tight_layout()
-fig.subplots_adjust(right=0.9)
-cmap = sns.cubehelix_palette(8, start=0., rot=0.4, as_cmap=True)
-cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
-ax_prec_unct.set_title('Residual (difference) in Prediction for '+subject)
-sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
-ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
-ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_prediction_diff_"+subject+".pdf", pad_inches=0.6)
-fig.clf() 
-
-
-
-x = np.arange(0, len(list_actual), 1);
-
-plt.plot(x, list_actual, label='actual')
+x = np.arange(0, len(list_actual), 1); 
 plt.plot(x, list_mean, label='pred. (mean)')
 plt.plot(x, list_low, label='pred.(5th percen.)')
 plt.plot(x, list_high, label='pred.(95th percen.)')
@@ -264,8 +220,7 @@ plt.xlabel('Grid indentification number')
 plt.savefig(directory_plot+"/plot_"+subject+".pdf")
 plt.clf()
 
-
-plt.plot(x[0:100], list_actual[0:100], label='actual')
+ 
 plt.plot(x[0:100], list_mean[0:100], label='prediction')
 plt.plot(x[0:100], list_low[0:100], label='pred.(5th percen.)')
 plt.plot(x[0:100], list_high[0:100], label='pred.(95th percen.)')
@@ -278,4 +233,105 @@ plt.xlabel('Grid indentification number')
 plt.ylabel('Precitipation')
 plt.savefig(directory_plot+"/snapshot_plot_"+subject+".pdf")
 plt.clf()
+ 
+
+fig, ax_prec_unct = plt.subplots(figsize=(18,6))
+fig.tight_layout()
+fig.subplots_adjust(right=0.9)
+cmap = sns.cubehelix_palette(8, start=0., rot=0.4, as_cmap=True)
+cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
+ax_prec_unct.set_title('Uncertainty in Prediction for '+subject)
+sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
+ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
+ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
+fig.savefig(directory_plot+"/map_prediction_uncert_"+subject+".pdf", pad_inches=0.6)
+
+fig.clf() 
+
+
+
+if (type_pred == "miocene") or (type_pred == "eocene"):
+
+	fig, ax_prec_pred = plt.subplots(figsize=(18,6))
+	fig.tight_layout()
+	fig.subplots_adjust(right=0.9)
+	cmap = sns.cubehelix_palette(8, start=0.65, rot=-0.9, light=0.9, as_cmap=True)
+	cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
+	ax_prec_pred.set_title('Actual values -  '+subject)
+	sns.heatmap(map_predict_actual, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_pred, cbar_ax=cbar_ax)
+	ax_prec_pred.set_xlabel('Paleolongitude', labelpad=10)
+	ax_prec_pred.set_ylabel('Paleolatitude',  labelpad=10)
+	fig.savefig(directory_plot+"/map_actual_"+subject+".pdf", pad_inches=0.6)
+	fig.clf() 
+
+
+	print("minimum uncertainty is "+str(np.ma.array(list(map_predict_diff),mask=mask_exclude).min()))
+	print("maximum uncertainty is "+str(np.ma.array(list(map_predict_diff),mask=mask_exclude).max()))
+	fig, ax_prec_unct = plt.subplots(figsize=(18,6))
+	fig.tight_layout()
+	fig.subplots_adjust(right=0.9)
+	cmap = sns.cubehelix_palette(8, start=0., rot=0.4, as_cmap=True)
+	cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
+	ax_prec_unct.set_title('Residual (difference) in Prediction for '+subject)
+	sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
+	ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
+	ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
+	fig.savefig(directory_plot+"/map_prediction_diff_"+subject+".pdf", pad_inches=0.6)
+	fig.clf()
+
+	plt.plot(x, list_actual, label='actual')
+	plt.plot(x, list_mean, label='pred. (mean)')
+	plt.plot(x, list_low, label='pred.(5th percen.)')
+	plt.plot(x, list_high, label='pred.(95th percen.)')
+	plt.fill_between(x, list_low, list_high, facecolor='g', alpha=0.4)
+	plt.legend(loc='upper right')
+
+	plt.title("Prediction with uncertainty ")
+
+	plt.ylabel('Precitipation')
+
+	plt.xlabel('Grid indentification number')
+	plt.savefig(directory_plot+"/plot_"+subject+".pdf")
+	plt.clf()
+
+
+	plt.plot(x[0:100], list_actual[0:100], label='actual')
+	plt.plot(x[0:100], list_mean[0:100], label='prediction')
+	plt.plot(x[0:100], list_low[0:100], label='pred.(5th percen.)')
+	plt.plot(x[0:100], list_high[0:100], label='pred.(95th percen.)')
+	plt.fill_between(x[0:100], list_low[0:100], list_high[0:100], facecolor='g', alpha=0.4)
+	plt.legend(loc='upper right')
+
+	plt.title("Prediction with uncertainty ")
+
+	plt.xlabel('Grid indentification number')
+	plt.ylabel('Precitipation')
+	plt.savefig(directory_plot+"/snapshot_plot_"+subject+".pdf")
+	plt.clf()
+
+	print("minimum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).min()))
+	print("maximum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).max()))
+
+	fig, ax_prec_unct = plt.subplots(figsize=(18,6))
+	fig.tight_layout()
+	fig.subplots_adjust(right=0.9)
+	cmap = sns.cubehelix_palette(8, start=0., rot=0.4, as_cmap=True)
+	cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
+	ax_prec_unct.set_title('Uncertainty in Prediction for '+subject)
+	sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
+	ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
+	ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
+	fig.savefig(directory_plot+"/map_prediction_uncert_"+subject+".pdf", pad_inches=0.6)
+
+	fig.clf() 
+		 
+
+
+
+
+	 
+
+
+
+	
 
