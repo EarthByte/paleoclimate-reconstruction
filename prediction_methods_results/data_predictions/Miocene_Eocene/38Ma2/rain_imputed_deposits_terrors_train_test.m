@@ -33,9 +33,12 @@
  test_data=readtable('learning_data_eocene_deposit_2PIC.csv');
  precip_test=readtable('precip_only.csv');
  test_predictor_data=table2array(test_data);
+ deposit_input=readtable('deposit_index.csv');
  test_space_index=[2,3];
  test_cont_index=[7 9 11 12];
  test_dep_index=[4 5 6];
+ dep_index=[3 4 5]
+ test_predictor_data(:,deposit_index)=deposit_input38M(:,dep_index);
  test_index=[test_dep_index test_cont_index test_space_index];
  precip_test=table2array(precip_test);
  y_index=3;%log precip
