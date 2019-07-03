@@ -1,35 +1,34 @@
 
 
  
-function predict_precitipation_miocene(folder, input_file,output_fileinput, infile,  output_file)
-
-%mkdir(folder+"/results")
-
-mkdir 14Ma_/results
+function predict_precitipation_miocene( input_file,output_fileinput, infile,  output_file,  knowledgefile)
+ 
 
  state=sum(100*clock);
  rand('state', state);
  randn('state', state);
  nloop=5000;
- nwarmup=2000;
+ nwarmup=2000; 
+ 
+ 
  data=readtable(input_file);
- deposit_data=readtable(output_fileinput);
- %precip=readtable('miocene_precip_v1.csv');
-
- precip=readtable(infile);
-
-
+ deposit_data=readtable(output_fileinput); 
+ %precip=readtable(infile);
  predictor_data=table2array(data);
- deposit_data=table2array(deposit_data);
- pred_deposit_index=[4 5 6];
- deposit_index=[3 4 5];
+ 
+ predictor_data=deposit_data;
+ 
+ deposit_data=table2array(deposit_data); 
+ 
+ pred_deposit_index=[4 5 6];% index for deposit for predictor_data matrix
+ deposit_index=[3 4 5];% index for deposit for deposit_data
  ndep=length(deposit_index);
- predictor_data(:,pred_deposit_index)=deposit_data(:,deposit_index);
- space_index=[2,3];
- cont_index=[7 9];
+ predictor_data(:,pred_deposit_index)=deposit_data(:,deposit_index);%putting depot predictions for missing values
+ space_index=[2,3];%index of lat lon in predictor_data
+ cont_index=[7 9];%index of elevation and dist to shore in predictor_data
  precip=table2array(precip);
- y_index=3;%log precip
- y=precip(:,y_index).^1/3;
+ y_index=4;%precip
+ y=precip(:,y_index).^.33;%transforming using cube root
  ntot=length(y);
  X_deposit=predictor_data(:,pred_deposit_index);
  X_space=predictor_data(:,space_index);
@@ -39,15 +38,25 @@ mkdir 14Ma_/results
  varnames=data.Properties.VariableNames(Xlin_index);
  save varnames varnames
  nvar=size(Xlin,2)-1;
+ 
  Xlin(:,ndep+2:nvar+1)=(Xlin(:,ndep+2:nvar+1)-min(Xlin(:,ndep+2:nvar+1)))...
-     ./range(Xlin(:,ndep+2:nvar+1));%scaling
+    ./range(Xlin(:,ndep+2:nvar+1));%scaling
+
+     
+ 
+ 
  %selecting test(miss) abd train(obs) data
  Xlin_14Ma_input=Xlin%defining precdictor data for other time periods
- csvwrite('Xlin_14Ma_input_v1.csv',Xlin_14Ma_input);
- %save  Xlin_14Ma_input  Xlin_14Ma_input
+ save  knowledgefile  Xlin_14Ma_input
+ csvwrite('Xlin_14Ma_input.txt', Xlin_14Ma_input) 
+ 
+ 
+ 
+ 
  index_tot=1:ntot;
  index_tot=index_tot';
- nmiss=round(ntot*0.04);
+ percent_miss=0.5;%****************play with this for test vs training sample
+ nmiss=round(ntot*percent_miss);
  miss_index=sort(randperm(ntot,nmiss))';
  nobs=ntot-nmiss;
  obs_index=setdiff(index_tot,miss_index);
@@ -63,20 +72,22 @@ mkdir 14Ma_/results
  lon_miss=lon(miss_index);
  
 
- %GP kernel across training
 
- %[omega_all]=thinplate_basis(lat_all,lon_all,lat_all,lon_all);
+ 
+%               
+
+ 
  [omega_miss]=thinplate_basis(lat_miss,lon_miss,lat_miss,lon_miss);
  [omega_obs]=thinplate_basis(lat_obs,lon_obs,lat_obs,lon_obs);
  [omega_obs_miss]=thinplate_basis(lat_obs,lon_obs,lat_miss,lon_miss);
- omega_cov_miss_obs=omega_obs_miss'/omega_obs;
-%omega_cov_grid_design=omega_data_grid'/omega;
+ omega_cov_miss_obs=omega_obs_miss'/omega_obs; 
+ 
 %Representing the Kernal as a linear combination of basis functions
 [Q D]=eig(omega_obs);
 XX_obs=Q*D^.5;
 [Q D]=eig(omega_miss);
 XX_miss=Q*D^.5;
-nbasis=40;
+nbasis=100;%**********play with this
 zmat_obs=[Xlin_obs XX_obs(:,1:nbasis)];
 zmat_miss=[Xlin_miss XX_miss(:,1:nbasis)];
 np=size(zmat_obs,2);
@@ -153,9 +164,10 @@ for p=1:nwarmup + nloop%For 1
      Beta_star_all(:,p)=Beta_star;
      Scale_all(p)=scale;
      Tau_Spline_all(p)=tau_spline;
-     Y_obs_fit_all(:,p)=yfit_obs.^3; 
-     Y_miss_fit_all(:,p)=yfit_miss.^3;
+     Y_obs_fit_all(:,p)=yfit_obs; 
+     Y_miss_fit_all(:,p)=yfit_miss;
 end
+toc
 %Graphs
 obs_fit_hat=mean(Y_obs_fit_all(:,nwarmup:nloop),2);
 miss_fit_hat=mean(Y_miss_fit_all(:,nwarmup:nloop),2);
@@ -172,7 +184,7 @@ low_cred_lim_all(miss_index)=low_cred_lim_miss';
 up_cred_lim_all(obs_index)=up_cred_lim_obs';
 up_cred_lim_all(miss_index)=up_cred_lim_miss';
 
-results=[X_space y fit_all' low_cred_lim_all' up_cred_lim_all']
+results=[X_space(miss_index,:) miss_fit_hat low_cred_lim_miss up_cred_lim_miss]
 csvwrite(output_file,results)
 figure
 subplot(2,2,1)
@@ -192,26 +204,15 @@ title(['Histogram of Residuals with t_3 distribution in red'])
 subplot(2,2,4)
 boxplot(Beta_star_all(2:nvar-2,nwarmup:nloop)')%'labels','varnames(1:nvar-3)');
 title(['Boxplot of Regression Coefficients'])
-
-
-
-
 % optional, could help make the plot look nicer
 lat_data=(X_space(:,1)-min(X_space(:,1)))./(max(X_space(:,1))-min(X_space(:,1)));
 lon_data=(X_space(:,2)-min(X_space(:,2)))./(max(X_space(:,2))-min(X_space(:,2)));
-
-saveas(gcf, '14Ma_/plotresults.pdf')
-
-% figure
-% 
-%  tempx_grid1=linspace(min(lat_data),max(lat_data),ngrid)';
-%  tempy_grid1=linspace(min(lon_data),max(lon_data),ngrid)';
-%  fit_hat1=reshape(fit_hat,ngrid,ngrid);
-%  figure
-%  surf(tempy_grid1,tempx_grid1,fit_hat1)
-%  title(['Fit on Grid assuming all covariates=0 '])
-%  hold
-%  plot3(lat_data,lon_data,mean_fit,'*')
+ 
+ plot3(lat,lon,fit_all,'.')
+ saveas(gcf, '14Ma/plotresults.pdf')
+ 
+ 
+  
 
 end
 

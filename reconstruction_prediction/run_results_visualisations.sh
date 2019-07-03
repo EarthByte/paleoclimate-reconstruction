@@ -23,7 +23,7 @@ do
    python plot_prediction_deposit.py data_predictions/"$i"/results  deposit_results.csv evaporites # works 
    python plot_prediction_deposit.py data_predictions/"$i"/results  deposit_results.csv glacial  # works  
 
-   python plot_prediction_precitipation.py  data_predictions/"$i"/results   prec_results.csv precitipation  ${list[$x]}   #    works 
+   #python plot_prediction_precitipation.py  data_predictions/"$i"/results   prec_results.csv precitipation  ${list[$x]}   #    works 
  
    x=$(( $x + 1 ))
 
