@@ -19,7 +19,7 @@ declare -a arr=("14Ma_", "28Ma_")
 for i in "${arr[@]}"
 do
    echo ${list[$x]}
-   python plot_prediction_deposit.py data_predictions_nov2019/"$i"/results  deposit_results.csv coal   # works 
+   python plot_prediction_deposit_.py data_predictions_nov2019/"$i"/results  deposit_results_.csv coal   # works 
    #python plot_prediction_deposit.py data_predictions/"$i"/results  deposit_results.csv evaporites # works 
    #python plot_prediction_deposit.py data_predictions/"$i"/results  deposit_results.csv glacial  # works  
 
