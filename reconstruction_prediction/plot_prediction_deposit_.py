@@ -51,6 +51,8 @@ directory_plot =  predict_folder+"/depositpredictmaps"
 if not os.path.exists(directory_plot):
     os.makedirs(directory_plot) 
 
+print(predict_filename , ' predict_filename')
+
 prediction_file = predict_folder +'/' + predict_filename  # example only
 
 print("Prediction file path: %s"%(prediction_file))
@@ -115,19 +117,19 @@ list_unct = []
 list_actual = []
 
 if subject == 'coal':
-    actual_col =  2 
-    mean_col  = 5 + 3
-    high_col =  14
-    low_col =  11
+    actual_col =  14
+    mean_col  = 5 
+    high_col =  11
+    low_col =  8
 
     print(subject, ' is subject')
 
 
 if subject == 'glacial':
-    actual_col =   4
-    mean_col  =  7 + 3
-    high_col = 16 
-    low_col =  13
+    actual_col =   16
+    mean_col  =  7 
+    high_col = 13
+    low_col =  10
 
 
     print(subject, ' is subject')
@@ -136,10 +138,10 @@ if subject == 'glacial':
 
 
 if subject == 'evaporites':
-    actual_col = 3
-    mean_col  =  6 + 3
-    high_col =  15
-    low_col =  12
+    actual_col = 15
+    mean_col  =  6  
+    high_col =  12
+    low_col =  9
 
 
     print(subject, ' is subject')
@@ -205,7 +207,7 @@ ax_prec_pred.set_title('Prediction for '+subject)
 sns.heatmap(map_predict_mean, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_pred, cbar_ax=cbar_ax)
 ax_prec_pred.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_pred.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig( directory_plot+"/map_prediction_"+subject+".pdf", pad_inches=0.6)
+fig.savefig( directory_plot+"/map_prediction_"+subject+predict_filename+".pdf", pad_inches=0.6)
 fig.clf()
 
 
@@ -221,7 +223,7 @@ ax_prec_unct.set_title('Uncertainty in Prediction for '+subject)
 sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
 ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_prediction_uncert_"+subject+".pdf", pad_inches=0.6)
+fig.savefig(directory_plot+"/map_prediction_uncert_"+subject+predict_filename+".pdf", pad_inches=0.6)
 fig.clf()
 
 
@@ -234,5 +236,5 @@ ax_prec_unct.set_title('Actual  '+subject)
 sns.heatmap(map_predict_actual, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
 ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_actual_"+subject+".pdf", pad_inches=0.6)
+fig.savefig(directory_plot+"/map_actual_"+subject+predict_filename+".pdf", pad_inches=0.6)
 fig.clf()

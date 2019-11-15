@@ -1,11 +1,7 @@
 
 # coding: utf-8
 
-# # Plot Predicted Precipitation 
-# 
-# ## Madhura Killedar
-# ## date   : 20/07/2018
-# 
+ 
 
 from __future__ import print_function
 import sys
@@ -38,7 +34,7 @@ print("   Begin *******                   ********           *********  ")
 
 
 # USER CHOICES
-if(len(sys.argv)!=5):
+if(len(sys.argv)!=4):
     sys.exit('Usage:  input problem no. samples.   see run.sh')
 
  
@@ -57,25 +53,73 @@ directory_plot =  predict_folder+"/precitmap"
 if not os.path.exists(directory_plot):
     os.makedirs(directory_plot) 
 
-prediction_file = predict_folder +'/' + predict_filename  # example only
 
-print("Prediction file path: %s"%(prediction_file))
+
+prediction_filepath = predict_folder +'/' + predict_filename  # example only
+
+print("Prediction file path: %s"%(prediction_filepath))
+
+
+print("Prediction predict_filename xx: %s"%(predict_filename))
+  
+
+
+directory_plot =  predict_folder+"/precitmap/map_prediction"
+
+
+if not os.path.exists(directory_plot):
+    os.makedirs(directory_plot) 
+
+
+
+directory_plot =  predict_folder+"/precitmap/plot_graph"
+
+
+if not os.path.exists(directory_plot):
+    os.makedirs(directory_plot) 
+
+
+
+directory_plot =  predict_folder+"/precitmap/map_actual"
+
+
+if not os.path.exists(directory_plot):
+    os.makedirs(directory_plot) 
+
+
+directory_plot =  predict_folder+"/precitmap/snapshot_plot"
+
+
+if not os.path.exists(directory_plot):
+    os.makedirs(directory_plot) 
+
+
+directory_plot =  predict_folder+"/precitmap/map_prediction_uncert"
+
+
+if not os.path.exists(directory_plot):
+    os.makedirs(directory_plot) 
+
+
+directory_plot =  predict_folder+"/precitmap/map_prediction_diff"
+
+
+if not os.path.exists(directory_plot):
+    os.makedirs(directory_plot) 
+
+type_pred = str(sys.argv[3])
  
-subject = str(sys.argv[3])
 
-
-type_pred = str(sys.argv[4])
+directory_plot =  predict_folder+"/precitmap"
  
 
  
 
- 
-
-subject = 'precitipation'
+subject = 'prediction'
  
 
 # read file
-predictions = pd.read_csv(prediction_file, header=None)
+predictions = pd.read_csv(prediction_filepath, header=None)
 
 #print(predictions)
 
@@ -166,9 +210,9 @@ for ilon,lon_low in enumerate(lon_coords):
 
 
             map_predict_actual[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,2] )
-            map_predict_mean[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,3] )
-            map_predict_low[nlatbins-ilat-1,ilon]  =  pred_wrapper(predictions.loc[here,4] )
-            map_predict_high[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,5] )
+            map_predict_mean[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,2] )
+            map_predict_low[nlatbins-ilat-1,ilon]  =  pred_wrapper(predictions.loc[here,3] )
+            map_predict_high[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,4] )
             map_predict_unct[nlatbins-ilat-1,ilon] = map_predict_high[nlatbins-ilat-1,ilon] - map_predict_low[nlatbins-ilat-1,ilon] 
             map_predict_diff[nlatbins-ilat-1,ilon] = map_predict_mean[nlatbins-ilat-1,ilon] -map_predict_actual[nlatbins-ilat-1,ilon]
 
@@ -201,7 +245,7 @@ sns.heatmap(map_predict_mean, cmap=cmap, cbar=True,  square=True, xticklabels=Fa
 ax_prec_pred.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_pred.set_ylabel('Paleolatitude',  labelpad=10)
 #fig.savefig(predict_folder+"map_prediction_"+subject+".pdf", pad_inches=0.6) 
-fig.savefig(directory_plot+"/map_prediction_"+subject+".pdf", pad_inches=0.6)
+fig.savefig(directory_plot+"/map_prediction/"+subject+predict_filename+".pdf", pad_inches=0.6)
 
 fig.clf() 
 
@@ -217,7 +261,7 @@ plt.title("Prediction with uncertainty ")
 plt.ylabel('Precitipation')
 
 plt.xlabel('Grid indentification number')
-plt.savefig(directory_plot+"/plot_"+subject+".pdf")
+plt.savefig(directory_plot+"/plot_graph/"+subject+predict_filename+".pdf")
 plt.clf()
 
  
@@ -231,7 +275,7 @@ plt.title("Prediction with uncertainty ")
 
 plt.xlabel('Grid indentification number')
 plt.ylabel('Precitipation')
-plt.savefig(directory_plot+"/snapshot_plot_"+subject+".pdf")
+plt.savefig(directory_plot+"/snapshot_plot/"+subject+".pdf")
 plt.clf()
  
 
@@ -244,7 +288,7 @@ ax_prec_unct.set_title('Uncertainty in Prediction for '+subject)
 sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
 ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_prediction_uncert_"+subject+".pdf", pad_inches=0.6)
+fig.savefig(directory_plot+"/map_prediction_uncert/"+subject+predict_filename+".pdf", pad_inches=0.6)
 
 fig.clf() 
 
@@ -261,7 +305,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	sns.heatmap(map_predict_actual, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_pred, cbar_ax=cbar_ax)
 	ax_prec_pred.set_xlabel('Paleolongitude', labelpad=10)
 	ax_prec_pred.set_ylabel('Paleolatitude',  labelpad=10)
-	fig.savefig(directory_plot+"/map_actual_"+subject+".pdf", pad_inches=0.6)
+	fig.savefig(directory_plot+"/map_actual/"+subject+predict_filename+".pdf", pad_inches=0.6)
 	fig.clf() 
 
 
@@ -276,10 +320,10 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
 	ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 	ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-	fig.savefig(directory_plot+"/map_prediction_diff_"+subject+".pdf", pad_inches=0.6)
+	fig.savefig(directory_plot+"/map_prediction_diff/"+subject+predict_filename+".pdf", pad_inches=0.6)
 	fig.clf()
 
-	plt.plot(x, list_actual, label='actual')
+	'''plt.plot(x, list_actual, label='actual')
 	plt.plot(x, list_mean, label='pred. (mean)')
 	plt.plot(x, list_low, label='pred.(5th percen.)')
 	plt.plot(x, list_high, label='pred.(95th percen.)')
@@ -291,8 +335,8 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	plt.ylabel('Precitipation')
 
 	plt.xlabel('Grid indentification number')
-	plt.savefig(directory_plot+"/plot_"+subject+".pdf")
-	plt.clf()
+	plt.savefig(directory_plot+"/plot/"+subject+predict_filename+".pdf")
+	plt.clf()'''
 
 
 	plt.plot(x[0:100], list_actual[0:100], label='actual')
@@ -306,7 +350,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 
 	plt.xlabel('Grid indentification number')
 	plt.ylabel('Precitipation')
-	plt.savefig(directory_plot+"/snapshot_plot_"+subject+".pdf")
+	plt.savefig(directory_plot+"/snapshot_plot/"+subject+predict_filename+".pdf")
 	plt.clf()
 
 	print("minimum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).min()))
@@ -321,7 +365,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
 	ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 	ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-	fig.savefig(directory_plot+"/map_prediction_uncert_"+subject+".pdf", pad_inches=0.6)
+	fig.savefig(directory_plot+"/map_prediction_uncert/"+subject+predict_filename+".pdf", pad_inches=0.6)
 
 	fig.clf() 
 		 
