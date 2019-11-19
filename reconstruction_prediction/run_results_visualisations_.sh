@@ -16,14 +16,14 @@ declare -a list=("miocene"  "eocene2PIC" "eocene4PIC" "other" "other28" "other51
 
 
 x=0
-declare -a arr=("14Ma_" "28Ma_")
+#declare -a arr=("14Ma_" "28Ma_")
 
 #declare -a eras=("14" "38" "39" "28")
 
 #14, 38, 28, 51, 61, 77, 101, 129, 154, 182, 219, 242
 
 
-declare -a eras=("14" "38" "39" "28")
+declare -a eras=("14" "38" "39" "28" "51" "61" "77" "101" "129" "154" "182" "219" "242")
 
 ## now loop through the above array
 for i in "${eras[@]}"
@@ -32,9 +32,9 @@ do
 
    echo ${list[$x]}
    
-   #python plot_prediction_deposit_.py data_prediction_nov2019/results_depositsprecip era"$i"results.csv coal   # works 
-   #python plot_prediction_deposit.py data_predictions/"$i"/results  deposit_results.csv evaporites # works 
-   #python plot_prediction_deposit.py data_predictions/"$i"/results  deposit_results.csv glacial  # works  
+   python plot_prediction_deposit_.py data_prediction_nov2019/results_depositsprecip era"$i"results.csv coal   # works  
+   python plot_prediction_deposit_.py data_prediction_nov2019/results_depositsprecip era"$i"results.csv evaporites   # works 
+   python plot_prediction_deposit_.py data_prediction_nov2019/results_depositsprecip era"$i"results.csv glacial   # works 
 
    python plot_prediction_precitipation_.py  data_prediction_nov2019/results_depositsprecip   era"$i"results.csv ${list[$x]}   #    works 
  
