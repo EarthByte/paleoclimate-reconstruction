@@ -12,7 +12,7 @@ echo Running all
 declare -a list=("miocene"  "eocene2PIC" "eocene4PIC" "other" "other28" "other51" "other61" "other" "other" "other" "other" "other" "other" "other" )
 
 
-#python split_eras.py 
+python split_eras.py 
 
 
 x=0
