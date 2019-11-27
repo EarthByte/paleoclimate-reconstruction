@@ -244,8 +244,8 @@ ax_prec_pred.set_title('Prediction for '+subject)
 sns.heatmap(map_predict_mean, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_pred, cbar_ax=cbar_ax)
 ax_prec_pred.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_pred.set_ylabel('Paleolatitude',  labelpad=10)
-#fig.savefig(predict_folder+"map_prediction_"+subject+".png", pad_inches=0.6) 
-fig.savefig(directory_plot+"/map_prediction/"+subject+predict_filename+".png", pad_inches=0.6)
+#fig.savefig(predict_folder+"map_prediction_"+subject+".pdf", pad_inches=0.6) 
+fig.savefig(directory_plot+"/map_prediction/"+subject+predict_filename+".pdf", pad_inches=0.6)
 
 fig.clf() 
 
@@ -261,7 +261,7 @@ plt.title("Prediction with uncertainty ")
 plt.ylabel('Precitipation')
 
 plt.xlabel('Grid indentification number')
-plt.savefig(directory_plot+"/plot_graph/"+subject+predict_filename+".png")
+plt.savefig(directory_plot+"/plot_graph/"+subject+predict_filename+".pdf")
 plt.clf()
 
  
@@ -275,7 +275,7 @@ plt.title("Prediction with uncertainty ")
 
 plt.xlabel('Grid indentification number')
 plt.ylabel('Precitipation')
-plt.savefig(directory_plot+"/snapshot_plot/"+subject+".png")
+plt.savefig(directory_plot+"/snapshot_plot/"+subject+".pdf")
 plt.clf()
  
 
@@ -288,7 +288,7 @@ ax_prec_unct.set_title('Uncertainty in Prediction for '+subject)
 sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
 ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_prediction_uncert/"+subject+predict_filename+".png", pad_inches=0.6)
+fig.savefig(directory_plot+"/map_prediction_uncert/"+subject+predict_filename+".pdf", pad_inches=0.6)
 
 fig.clf() 
 
@@ -305,7 +305,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	sns.heatmap(map_predict_actual, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_pred, cbar_ax=cbar_ax)
 	ax_prec_pred.set_xlabel('Paleolongitude', labelpad=10)
 	ax_prec_pred.set_ylabel('Paleolatitude',  labelpad=10)
-	fig.savefig(directory_plot+"/map_actual/"+subject+predict_filename+".png", pad_inches=0.6)
+	fig.savefig(directory_plot+"/map_actual/"+subject+predict_filename+".pdf", pad_inches=0.6)
 	fig.clf() 
 
 
@@ -320,7 +320,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
 	ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 	ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-	fig.savefig(directory_plot+"/map_prediction_diff/"+subject+predict_filename+".png", pad_inches=0.6)
+	fig.savefig(directory_plot+"/map_prediction_diff/"+subject+predict_filename+".pdf", pad_inches=0.6)
 	fig.clf()
 
 	'''plt.plot(x, list_actual, label='actual')
@@ -335,7 +335,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	plt.ylabel('Precitipation')
 
 	plt.xlabel('Grid indentification number')
-	plt.savefig(directory_plot+"/plot/"+subject+predict_filename+".png")
+	plt.savefig(directory_plot+"/plot/"+subject+predict_filename+".pdf")
 	plt.clf()'''
 
 
@@ -350,7 +350,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 
 	plt.xlabel('Grid indentification number')
 	plt.ylabel('Precitipation')
-	plt.savefig(directory_plot+"/snapshot_plot/"+subject+predict_filename+".png")
+	plt.savefig(directory_plot+"/snapshot_plot/"+subject+predict_filename+".pdf")
 	plt.clf()
 
 	print("minimum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).min()))
@@ -365,7 +365,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
 	ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 	ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-	fig.savefig(directory_plot+"/map_prediction_uncert/"+subject+predict_filename+".png", pad_inches=0.6)
+	fig.savefig(directory_plot+"/map_prediction_uncert/"+subject+predict_filename+".pdf", pad_inches=0.6)
 
 	fig.clf() 
 		 
