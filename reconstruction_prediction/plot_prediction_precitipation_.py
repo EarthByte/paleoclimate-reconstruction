@@ -210,9 +210,9 @@ for ilon,lon_low in enumerate(lon_coords):
 
 
             map_predict_actual[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,2] )
-            map_predict_mean[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,2] )
-            map_predict_low[nlatbins-ilat-1,ilon]  =  pred_wrapper(predictions.loc[here,3] )
-            map_predict_high[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,4] )
+            map_predict_mean[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,3] )
+            map_predict_low[nlatbins-ilat-1,ilon]  =  pred_wrapper(predictions.loc[here,4] )
+            map_predict_high[nlatbins-ilat-1,ilon] =  pred_wrapper(predictions.loc[here,5] )
             map_predict_unct[nlatbins-ilat-1,ilon] = map_predict_high[nlatbins-ilat-1,ilon] - map_predict_low[nlatbins-ilat-1,ilon] 
             map_predict_diff[nlatbins-ilat-1,ilon] = map_predict_mean[nlatbins-ilat-1,ilon] -map_predict_actual[nlatbins-ilat-1,ilon]
 
@@ -323,20 +323,21 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	fig.savefig(directory_plot+"/map_prediction_diff/"+subject+predict_filename+".pdf", pad_inches=0.6)
 	fig.clf()
 
-	'''plt.plot(x, list_actual, label='actual')
-	plt.plot(x, list_mean, label='pred. (mean)')
-	plt.plot(x, list_low, label='pred.(5th percen.)')
-	plt.plot(x, list_high, label='pred.(95th percen.)')
-	plt.fill_between(x, list_low, list_high, facecolor='g', alpha=0.4)
+	#plt.plot(x, list_actual, label='actual')
+	plt.bar(x, list_mean, 0.1, yerr=(list_low - list_high))
+	#plt.plot(x, list_mean, label='pred. (mean)')
+	#plt.plot(x, list_low, label='pred.(5th percen.)')
+	#plt.plot(x, list_high, label='pred.(95th percen.)')
+	#plt.fill_between(x, list_low, list_high, facecolor='g', alpha=0.4)
 	plt.legend(loc='upper right')
 
 	plt.title("Prediction with uncertainty ")
 
-	plt.ylabel('Precitipation')
+	plt.ylabel('Precipitation')
 
 	plt.xlabel('Grid indentification number')
-	plt.savefig(directory_plot+"/plot/"+subject+predict_filename+".pdf")
-	plt.clf()'''
+	plt.savefig(directory_plot+"/snapshot_plot/"+subject+predict_filename+"_.pdf")
+	plt.clf()
 
 
 	plt.plot(x[0:100], list_actual[0:100], label='actual')
@@ -349,7 +350,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	plt.title("Prediction with uncertainty ")
 
 	plt.xlabel('Grid indentification number')
-	plt.ylabel('Precitipation')
+	plt.ylabel('Precipitation')
 	plt.savefig(directory_plot+"/snapshot_plot/"+subject+predict_filename+".pdf")
 	plt.clf()
 

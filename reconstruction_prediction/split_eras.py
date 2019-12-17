@@ -18,7 +18,7 @@ era_num = [14, 38, 39, 28, 51, 61, 77, 101, 129, 154, 182, 219, 242 ]
  
 for i in range(len(era_num)): 
 
-	era_index = np.where(my_data[:, 21]==era_num[i])[0]
+	era_index = np.where(my_data[:, 22]==era_num[i])[0]
 
 	print(era_index.shape)
 

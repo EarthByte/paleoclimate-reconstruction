@@ -9,7 +9,7 @@ echo Running all
 
 #declare -a arr=("14Ma_" "28Ma_" "38Ma2PIC_" "38Ma4PIC_" "51Ma_" "61Ma_" "77Ma_" "101Ma_"  "129Ma_"  "154Ma_"  "182Ma_" "219Ma_" "242Ma_" "249Ma_" )
 
-declare -a list=("miocene"  "eocene2PIC" "eocene4PIC" "other" "other28" "other51" "other61" "other" "other" "other" "other" "other" "other" "other" )
+declare -a list=("miocene"  "eocene" "eocene" "other" "other" "other" "other" "other" "other" "other" "other" "other" "other" "other" )
 
 
 python split_eras.py 

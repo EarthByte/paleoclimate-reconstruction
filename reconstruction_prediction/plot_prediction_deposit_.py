@@ -142,19 +142,19 @@ list_unct = []
 list_actual = []
 
 if subject == 'coal':
-    actual_col =  14
-    mean_col  = 5 
-    high_col =  11
-    low_col =  8
+    actual_col =  15
+    mean_col  = 6 
+    high_col =  12
+    low_col =  9
 
     print(subject, ' is subject')
 
 
 if subject == 'glacial':
-    actual_col =   16
-    mean_col  =  7 
-    high_col = 13
-    low_col =  10
+    actual_col =   17
+    mean_col  =  8
+    high_col = 14
+    low_col =  11
 
 
     print(subject, ' is subject')
@@ -163,10 +163,10 @@ if subject == 'glacial':
 
 
 if subject == 'evaporites':
-    actual_col = 15
-    mean_col  =  6  
-    high_col =  12
-    low_col =  9
+    actual_col = 16
+    mean_col  =  7  
+    high_col =  13
+    low_col =  10
 
 
     print(subject, ' is subject')
