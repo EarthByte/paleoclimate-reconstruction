@@ -37,23 +37,9 @@ _Note: these files will be created locally but are not to be pushed to the onlin
 
 The plate reconstruction queried in this code is designed specifically for the Miocene and is consistent with the (Miocene) precipitation output. Therefore the output csv file is most appropriate for learning.
 
+ 
 
-## Step 2: Bayesian modelling
-Run the following:
-```
-cd GPplus2/
-python run_GPplus.py
-```
-Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Changes include:
-* references to new variable target_desc instead of Crime
-* writing covariance matrix and likelihood function manually (instead of using george)
-* drawing predictions from multivariate normal
-* getting and writing parameter-scaling terms (min and range) to csv-file
-* two distinct GP length scale parameters (one for latitude, one for longitude)
-* removal of dropout flag (was never used)
-
-
-## Step 3: Pre-process data for prediction
+## Step 2: Pre-process data for prediction
 Run
 ```
 python data_predictors_anytime.py
@@ -72,14 +58,21 @@ where
 _Note: these files will be created locally but are not to be pushed to the online repository_
 
 
-## Step 4: Predict missing deposit and estimate precip using Gausiian Process - Gibs Sampler MCMC framework in Matlab
+## Step 3: Bayesian model: Predict missing deposit and estimate precip using Gaussian Process - Gibs Sampler based MCMC framework in Matlab
+
+
+Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Changes include:
+* references to new variable target_desc instead of Crime 
+* tba
+
+
 * [Execute matlab code ](https://github.com/EarthByte/paleoclimate-reconstruction/blob/master/reconstruction_prediction/model/predmodel_framework.m)
 * [Main results for all eras](https://github.com/EarthByte/paleoclimate-reconstruction/blob/master/reconstruction_prediction/model/results_all.csv)
 
 
 
 
-## Step 5: Plot map of deposit and predictions
+## Step 4: Plot map of deposit and predictions
   
 * gridded prediction and uncertainty maps  for deposits (coal, evaporites, glacial) and precip using python matplotlib
 * [Run visualise shell script ](https://github.com/EarthByte/paleoclimate-reconstruction/blob/master/reconstruction_prediction/run_results_visualisations_.sh)
