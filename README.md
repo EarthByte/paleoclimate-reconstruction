@@ -72,15 +72,16 @@ where
 _Note: these files will be created locally but are not to be pushed to the online repository_
 
 
-## Step 4: Predict things
-*Insert code for prediction*
+## Step 4: Predict missing deposit and estimate precip using Gausiian Process - Gibs Sampler MCMC frameowork in Matlab
+* [Execute matlab code ](https://github.com/EarthByte/paleoclimate-reconstruction/blob/master/reconstruction_prediction/model/predmodel_framework.m)
+* [Main results for all eras](https://github.com/EarthByte/paleoclimate-reconstruction/blob/master/reconstruction_prediction/model/results_all.csv)
 
 
-## Step 5: Plot predictions
-Run
-```
-python plot_prediction.py <relative path to input file> <one-word subject descriptor>
-```
-This code creates:
-* gridded prediction and uncertainty maps within `predictions/`
+
+
+## Step 5: Plot map of deposit and predictions
+  
+* gridded prediction and uncertainty maps  for deposits (coal, evaporites, glacial) and precip using python matplotlib
+* [Run visualise shell script ](https://github.com/EarthByte/paleoclimate-reconstruction/blob/master/reconstruction_prediction/run_results_visualisations_.sh)
+
 

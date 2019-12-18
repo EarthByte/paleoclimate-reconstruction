@@ -24,7 +24,7 @@ for i in range(len(era_num)):
 
 	era = my_data[era_index, :]
 
-	np.savetxt( 'data_prediction_nov2019/results_depositsprecip/'+'era'+str(era_num[i])+'results.csv', era, delimiter=',')
+	np.savetxt( 'results_depositsprecip/'+'era'+str(era_num[i])+'results.csv', era, delimiter=',')
 
 	print(era.shape)
 

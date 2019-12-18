@@ -32,11 +32,11 @@ do
 
    echo ${list[$x]}
    
-   python plot_prediction_deposit_.py data_prediction_nov2019/results_depositsprecip era"$i"results.csv coal   # works  
-   python plot_prediction_deposit_.py data_prediction_nov2019/results_depositsprecip era"$i"results.csv evaporites   # works 
-   python plot_prediction_deposit_.py data_prediction_nov2019/results_depositsprecip era"$i"results.csv glacial   # works 
+   python plot_prediction_deposit_.py  results_depositsprecip era"$i"results.csv coal   # works  
+   python plot_prediction_deposit_.py  results_depositsprecip era"$i"results.csv evaporites   # works 
+   python plot_prediction_deposit_.py  results_depositsprecip era"$i"results.csv glacial   # works 
 
-   python plot_prediction_precitipation_.py  data_prediction_nov2019/results_depositsprecip   era"$i"results.csv ${list[$x]}   #    works 
+   python plot_prediction_precitipation_.py   results_depositsprecip   era"$i"results.csv ${list[$x]}   #    works 
  
    x=$(( $x + 1 ))
 
