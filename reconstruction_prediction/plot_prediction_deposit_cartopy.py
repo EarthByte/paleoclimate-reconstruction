@@ -19,6 +19,29 @@ import csv
 import cartopy.crs as ccrs
 
 
+from mpl_toolkits.basemap import Basemap
+from scipy.ndimage import filters
+from scipy.ndimage import interpolation
+import cv2
+from matplotlib.patches import Polygon
+#from matplotlib.collections import PatchCollectioninput
+
+import shapefile
+
+def readTopologyPlatepolygonFile(filename):
+    '''
+    Reads shapefiles and returns the all the data fields
+    '''
+    shapeRead = shapefile.Reader(filename)
+
+    recs    = shapeRead.records()
+    shapes  = shapeRead.shapes()
+    fields  = shapeRead.fields
+    Nshp    = len(shapes)
+    
+    return(recs,shapes,fields,Nshp)
+
+
 from matplotlib import rc
 font = {'family': 'serif',
         'serif' : ['Palatino'],
@@ -218,6 +241,75 @@ for ilon,lon_low in enumerate(lon_coords):
 # ## PLOT Prediction
 
 #print( map_predict_mean)
+
+
+lons, lats = np.meshgrid(lon_coords,lat_coords)
+
+
+
+
+
+fig = plt.figure(figsize=(16,12),dpi=150)
+ax = fig.add_subplot(111)
+
+pmap = Basemap(projection='moll', lat_0=0, lon_0=0, resolution='l')
+pmap.drawmapboundary(fill_color='white')
+
+#Load in plate polygons for plotting
+#topologyFile='/Users/nbutter/Projects/GEO/Eocene/paleoclimate-reconstruction/data/PaleomagneticReferenceFrame/reconcoast/reconstructed_'+time1+'.00Ma.shp'
+#[recs,shapes,fields,Nshp]=readTopologyPlatepolygonFile(topologyFile)
+#patches   = []
+'''for i, nshp in enumerate(range(Nshp)):
+    #These are the plates that cross the dateline and cause 
+        #banding errors
+        polygonShape=shapes[nshp].points
+        poly=np.array(polygonShape)
+        testnum=max(poly[:,0])-min(poly[:,0])
+        if testnum < 180.0:
+            #lon_unwrapped = np.rad2deg(np.unwrap(np.deg2rad(poly[:,0])))
+            #print(poly[:,0])
+            #print(lon_unwrapped)
+            a=pmap(poly[:,0],poly[:,1])
+            #a=pmap(lon_unwrapped,poly[:,1])
+            b=np.array([a[0],a[1]])
+            patches.append(Polygon(b.T,closed=False,color='dimgrey'))
+            #pc = PatchCollection(patches, match_original=True, edgecolor='k', linewidths=1., zorder=2)
+            #ax.add_collection(pc)
+            #xs, ys = pmap(poly[:,0], poly[:,1])
+            #pmap.plot(xs, ys, 'k',zorder=1)
+        else:
+            print(testnum, recs[nshp][8],nshp)
+        
+
+pc = PatchCollection(patches, color='dimgrey', linewidths=1, zorder=1)
+ax.add_collection(pc)'''
+        
+intensity = np.ma.masked_where(np.isnan(map_predict_mean), map_predict_mean)
+im1 = pmap.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_earth_r,latlon=True)
+
+
+
+#pip install matplotlib==2.0.2  (this resolved error: MatplotlibDeprecationWarning: The axesPatch function was deprecated in version 2.1. Use Axes.patch instead)
+
+
+cb = pmap.colorbar(im1,"right", size="3%", pad="5%",ticks=[0,1],fraction=0.001)
+plt.clim(0,1)
+cb.set_label('Prediction for '+subject,labelpad=10,size=20)
+
+
+xh, yh = pmap(actual_lon, actual_lat)
+line,=pmap.plot(xh,yh,'ob',label='Actual '+subject)
+plt.legend(loc=4,prop={'size': 20})
+#pmap.imshow(intensity,extent=[-180,180,-90,90],origin='upper',interpolation='bilinear',cmap=plt.cm.binary)
+plt.text(33000000,16000000,time1+" Ma",size=20)
+
+
+pmap.drawmeridians(np.arange(0, 360, 60),color='grey',dashes=[1,0],linewidth=0.2)
+pmap.drawparallels(np.arange(-90, 90, 45),color='grey',dashes=[1,0],linewidth=0.2)
+
+
+
+plt.show()
 
 
 
