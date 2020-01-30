@@ -224,9 +224,6 @@ cbar.set_label('Prediction for '+subject,labelpad=10,size=20)
 fig.savefig( directory_plot+"/map_earth_/"+ predict_filename+".pdf", pad_inches=0.6)
 fig.clf()
 
-plt.show()
-
-
 print("minimum mean prediction is "+str(np.ma.array(list(map_predict_mean),mask=mask_exclude).min()))
 print("maximum mean prediction is "+str(np.ma.array(list(map_predict_mean),mask=mask_exclude).max()))
 fig, ax_prec_pred = plt.subplots(figsize=(18,6))
