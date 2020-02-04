@@ -20,21 +20,18 @@ x=0
 
 declare -a eras=("14" "38" "39" "28" "51" "61" "77" "101" "129" "154" "182" "219" "242")
 
-
-#declare -a eras=("14")
+ 
 
 ## now loop through the above array
 for i in "${eras[@]}"
 do
-   #echo ${eras[$x]}
+   echo ${eras[$x]}
 
-   #echo ${list[$x]}
-
-	echo $i
+   echo ${list[$x]}
    
-   python plot_prediction_deposit_cartopy.py  results_depositsprecip era"$i"results.csv coal 
-   python plot_prediction_deposit_cartopy.py  results_depositsprecip era"$i"results.csv  evaporites   
-   python plot_prediction_deposit_cartopy.py  results_depositsprecip era"$i"results.csv  glacial
+   python plot_prediction_deposit_cartopy.py  results_depositsprecip era"$i"results.csv coal   # works  
+   python plot_prediction_deposit_cartopy.py  results_depositsprecip era"$i"results.csv evaporites   # works 
+   python plot_prediction_deposit_cartopy.py  results_depositsprecip era"$i"results.csv glacial   # works 
 
    #python plot_prediction_precitipation_.py   results_depositsprecip   era"$i"results.csv ${list[$x]}   #    works 
  

@@ -86,5 +86,7 @@ Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Cha
 
 * [View maps precip estimation](https://github.com/EarthByte/paleoclimate-reconstruction/tree/master/reconstruction_prediction/results_depositsprecip/precitmap)
 
-* Cartopy python installation for Ubuntu Linux: 1. sudo apt update 2. sudo apt upgrade 3. sudo apt install gcc python3-dev python3-pip libxml2-dev libxslt1-dev zlib1g-dev g++ 4. sudo apt install libgeos-dev 5. sudo apt-get install proj-bin 6. sudo apt-get install libproj-dev proj-data proj-bin 7. sudo pip install cython 8. sudo pip install cartopy  
+* use [Anaconda environment](environment.yml)
+
+
 

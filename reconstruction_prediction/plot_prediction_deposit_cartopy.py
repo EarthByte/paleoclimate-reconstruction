@@ -38,12 +38,8 @@ directory_plot =  predict_folder+'/'+subject
 if not os.path.exists(directory_plot):
     os.makedirs(directory_plot) 
 
-directory_plot =  predict_folder+'/'+subject + "/map_prediction_"
-
-if not os.path.exists(directory_plot):
-    os.makedirs(directory_plot) 
-
-directory_plot =  predict_folder+'/'+subject + "/map_earth_"
+directory_plot =  predict_folder+'/'+subject + "/map_prediction"
+ 
 
 if not os.path.exists(directory_plot):
     os.makedirs(directory_plot) 
@@ -52,11 +48,7 @@ directory_plot =  predict_folder+'/'+subject + "/map_prediction_uncert_"
 
 if not os.path.exists(directory_plot):
     os.makedirs(directory_plot) 
-
-directory_plot =  predict_folder+'/'+subject + "/map_actual_"
-
-if not os.path.exists(directory_plot):
-    os.makedirs(directory_plot) 
+ 
 
 directory_plot =  predict_folder+'/'+subject
 
@@ -221,12 +213,15 @@ plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
 cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
 cbar.set_label('Prediction for '+subject,labelpad=10,size=20)
 
-fig.savefig( directory_plot+"/map_earth_/"+ predict_filename+".pdf", pad_inches=0.6)
+fig.savefig( directory_plot+"/map_prediction/"+ predict_filename+".pdf", pad_inches=0.6)
 fig.clf()
+
+plt.show()
+
 
 print("minimum mean prediction is "+str(np.ma.array(list(map_predict_mean),mask=mask_exclude).min()))
 print("maximum mean prediction is "+str(np.ma.array(list(map_predict_mean),mask=mask_exclude).max()))
-fig, ax_prec_pred = plt.subplots(figsize=(18,6))
+'''fig, ax_prec_pred = plt.subplots(figsize=(18,6))
 fig.tight_layout()
 fig.subplots_adjust(right=0.9)
 cmap = sns.cubehelix_palette(8, start=0.65, rot=-0.9, light=0.9, as_cmap=True)
@@ -238,7 +233,7 @@ sns.heatmap(map_predict_mean, cmap=cmap, cbar=True,  square=True, xticklabels=Fa
 ax_prec_pred.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_pred.set_ylabel('Paleolatitude',  labelpad=10)
 fig.savefig( directory_plot+"/map_prediction_/"+ predict_filename+".pdf", pad_inches=0.6)
-fig.clf()
+fig.clf()'''
 
 
 
@@ -257,7 +252,7 @@ fig.savefig(directory_plot+"/map_prediction_uncert_/"+ predict_filename+".pdf", 
 fig.clf()
 
 
-fig, ax_prec_unct = plt.subplots(figsize=(18,6))
+'''fig, ax_prec_unct = plt.subplots(figsize=(18,6))
 fig.tight_layout()
 fig.subplots_adjust(right=0.9)
 cmap = sns.cubehelix_palette(8, start=0., rot=0.4, as_cmap=True)
@@ -267,4 +262,4 @@ sns.heatmap(map_predict_actual, cmap=cmap, cbar=True,  square=True, xticklabels=
 ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
 fig.savefig(directory_plot+"/map_actual_/"+predict_filename+".pdf", pad_inches=0.6)
-fig.clf()
+fig.clf()'''
