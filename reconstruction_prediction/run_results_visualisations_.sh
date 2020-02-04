@@ -22,6 +22,9 @@ declare -a eras=("14" "38" "39" "28" "51" "61" "77" "101" "129" "154" "182" "219
 
  
 
+
+ 
+
 ## now loop through the above array
 for i in "${eras[@]}"
 do

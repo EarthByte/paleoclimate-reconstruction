@@ -180,11 +180,17 @@ for ilon,lon_low in enumerate(lon_coords):
 #print( map_predict_mean)
 
 
+temp = predict_filename.split('.csv')
+
+predict_filename = temp[0]
+  
+
 lons, lats = np.meshgrid(lon_coords,lat_coords)
 actual_data = predictions[predictions.loc[:,actual_col]>0].loc[:,actual_col].values
 actual_lat = predictions[predictions.loc[:,actual_col]>0].loc[:,0].values
 actual_lon = predictions[predictions.loc[:,actual_col]>0].loc[:,1].values
 map_predict_mean[map_predict_mean==0]=np.nan
+map_predict_unct[map_predict_unct==0]=np.nan
 
 # set up a map
 fig = plt.figure(figsize=(16,12),dpi=150)
@@ -193,16 +199,13 @@ ax.set_global()
 ax.gridlines(linewidth=0.1)
 
 #Create the varible to plot
-intensity = np.ma.masked_where(np.isnan(map_predict_mean), map_predict_mean)
-
+intensity = np.ma.masked_where(np.isnan(map_predict_mean), map_predict_mean) 
 #Plot on map
 mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_earth_r,transform=ccrs.PlateCarree())
 #Add additional points
-line=ax.scatter(actual_lon,actual_lat,transform=ccrs.PlateCarree(),label='Actual Deposits')
-
+line=ax.scatter(actual_lon,actual_lat,transform=ccrs.PlateCarree(),label='Deposit location') 
 #Add the legend, colorbar and some text
-plt.legend(loc=4,prop={'size': 15})
-
+plt.legend(loc=4,prop={'size': 15}) 
 #Get the current time from the filename
 time1=predict_filename.split('era')
 time2=time1[1].split('results')
@@ -213,31 +216,49 @@ plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
 cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
 cbar.set_label('Prediction for '+subject,labelpad=10,size=20)
 
-fig.savefig( directory_plot+"/map_prediction/"+ predict_filename+".pdf", pad_inches=0.6)
+
+fig.savefig( directory_plot+"/map_prediction/"+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
 fig.clf()
-
-plt.show()
-
-
-print("minimum mean prediction is "+str(np.ma.array(list(map_predict_mean),mask=mask_exclude).min()))
-print("maximum mean prediction is "+str(np.ma.array(list(map_predict_mean),mask=mask_exclude).max()))
-'''fig, ax_prec_pred = plt.subplots(figsize=(18,6))
-fig.tight_layout()
-fig.subplots_adjust(right=0.9)
-cmap = sns.cubehelix_palette(8, start=0.65, rot=-0.9, light=0.9, as_cmap=True)
-cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
-ax_prec_pred.set_title('Prediction for '+subject)
  
 
-sns.heatmap(map_predict_mean, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_pred, cbar_ax=cbar_ax)
-ax_prec_pred.set_xlabel('Paleolongitude', labelpad=10)
-ax_prec_pred.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig( directory_plot+"/map_prediction_/"+ predict_filename+".pdf", pad_inches=0.6)
-fig.clf()'''
 
 
 
-print("minimum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).min()))
+
+
+
+# set up a map
+fig = plt.figure(figsize=(16,12),dpi=150)
+ax = plt.axes(projection=ccrs.Mollweide())
+ax.set_global()
+ax.gridlines(linewidth=0.1)
+
+#Create the varible to plot
+intensity = np.ma.masked_where(np.isnan(map_predict_unct), map_predict_unct) 
+#Plot on map
+mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_earth_r,transform=ccrs.PlateCarree())
+#Add additional points
+line=ax.scatter(actual_lon,actual_lat,transform=ccrs.PlateCarree(),label='Deposit location') 
+#Add the legend, colorbar and some text
+plt.legend(loc=4,prop={'size': 15}) 
+#Get the current time from the filename
+time1=predict_filename.split('era')
+time2=time1[1].split('results')
+figtime=time2[0]
+print("fig time=",figtime)
+plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
+
+cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
+cbar.set_label('Uncertainty for '+subject,labelpad=10,size=20)
+
+
+fig.savefig( directory_plot+"/map_prediction_uncert_/"+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
+fig.clf()
+ 
+
+
+
+'''print("minimum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).min()))
 print("maximum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).max()))
 fig, ax_prec_unct = plt.subplots(figsize=(18,6))
 fig.tight_layout()
@@ -248,18 +269,6 @@ ax_prec_unct.set_title('Uncertainty in Prediction for '+subject)
 sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
 ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
 ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_prediction_uncert_/"+ predict_filename+".pdf", pad_inches=0.6)
-fig.clf()
-
-
-'''fig, ax_prec_unct = plt.subplots(figsize=(18,6))
-fig.tight_layout()
-fig.subplots_adjust(right=0.9)
-cmap = sns.cubehelix_palette(8, start=0., rot=0.4, as_cmap=True)
-cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
-ax_prec_unct.set_title('Actual  '+subject)
-sns.heatmap(map_predict_actual, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
-ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
-ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_actual_/"+predict_filename+".pdf", pad_inches=0.6)
+fig.savefig(directory_plot+"/map_prediction_uncert_/"+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
 fig.clf()'''
+ 
