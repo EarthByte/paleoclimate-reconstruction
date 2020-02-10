@@ -203,7 +203,7 @@ intensity = np.ma.masked_where(np.isnan(map_predict_mean), map_predict_mean)
 #Plot on map
 mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_earth_r,transform=ccrs.PlateCarree())
 #Add additional points
-line=ax.scatter(actual_lon,actual_lat,transform=ccrs.PlateCarree(),label='Deposit location') 
+line=ax.scatter(actual_lon,actual_lat,c='darkorange',marker='d',transform=ccrs.PlateCarree(),label='Deposit locations') 
 #Add the legend, colorbar and some text
 plt.legend(loc=4,prop={'size': 15}) 
 #Get the current time from the filename
