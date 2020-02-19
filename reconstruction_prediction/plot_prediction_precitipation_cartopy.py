@@ -102,12 +102,7 @@ if not os.path.exists(directory_plot):
 
 directory_plot =  predict_folder+"/precitmap/map_prediction_uncert"
 
-
-if not os.path.exists(directory_plot):
-    os.makedirs(directory_plot) 
-
-
-directory_plot =  predict_folder+"/precitmap/map_prediction_diff"
+ 
 
 
 if not os.path.exists(directory_plot):
