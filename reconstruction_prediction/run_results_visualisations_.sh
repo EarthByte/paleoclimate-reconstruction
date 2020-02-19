@@ -18,7 +18,11 @@ python split_eras.py
 x=0
 
 
-declare -a eras=("14" "38" "39" "28" "51" "61" "77" "101" "129" "154" "182" "219" "242")
+declare -a eras=("14" "38" "39" "40" "51" "61" "77" "101" "129" "154" "182" "219" "242")
+
+
+
+#Note 40Ma refers to 28Ma. 39Ma refers to 4PIC 38Ma model
 
  
 
@@ -36,7 +40,7 @@ do
    python plot_prediction_deposit_cartopy.py  results_depositsprecip era"$i"results.csv evaporites   # works 
    python plot_prediction_deposit_cartopy.py  results_depositsprecip era"$i"results.csv glacial   # works 
 
-   #python plot_prediction_precitipation_.py   results_depositsprecip   era"$i"results.csv ${list[$x]}   #    works 
+   python plot_prediction_precitipation_cartopy.py   results_depositsprecip   era"$i"results.csv ${list[$x]}   #    works 
  
    x=$(( $x + 1 ))
 

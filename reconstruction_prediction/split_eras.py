@@ -11,7 +11,7 @@ import csv
 
 
 from numpy import genfromtxt
-my_data = genfromtxt('results_all.csv', delimiter=',')
+my_data = genfromtxt('results_all_14Mtrain.csv', delimiter=',')
 
 era_num = [14, 38, 39, 28, 51, 61, 77, 101, 129, 154, 182, 219, 242 ]
 
