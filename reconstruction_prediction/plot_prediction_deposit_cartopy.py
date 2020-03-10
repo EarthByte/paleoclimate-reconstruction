@@ -179,6 +179,8 @@ for ilon,lon_low in enumerate(lon_coords):
 
 #print( map_predict_mean)
 
+xxx = 20
+
 
 temp = predict_filename.split('.csv')
 
@@ -205,7 +207,7 @@ mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_eart
 #Add additional points
 line=ax.scatter(actual_lon,actual_lat,c='darkorange',marker='d',transform=ccrs.PlateCarree(),label='Deposit locations') 
 #Add the legend, colorbar and some text
-plt.legend(loc=4,prop={'size': 15}) 
+plt.legend(loc=3,prop={'size': 18}) 
 #Get the current time from the filename
 time1=predict_filename.split('era')
 time2=time1[1].split('results')
@@ -214,7 +216,8 @@ print("fig time=",figtime)
 plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
 
 cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
-cbar.set_label('Prediction for '+subject,labelpad=10,size=20)
+cbar.set_label('Prediction probability of '+subject,labelpad=xxx,size=xxx)  
+cbar.ax.tick_params(labelsize=xxx)
 
 
 fig.savefig( directory_plot+"/map_prediction/"+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
@@ -240,7 +243,7 @@ mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_eart
 #Add additional points
 line=ax.scatter(actual_lon,actual_lat,transform=ccrs.PlateCarree(),label='Deposit location') 
 #Add the legend, colorbar and some text
-plt.legend(loc=4,prop={'size': 15}) 
+plt.legend(loc=3,prop={'size': 18}) 
 #Get the current time from the filename
 time1=predict_filename.split('era')
 time2=time1[1].split('results')
@@ -249,26 +252,11 @@ print("fig time=",figtime)
 plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
 
 cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
-cbar.set_label('Uncertainty for '+subject,labelpad=10,size=20)
+cbar.set_label('Uncertainty for '+subject,labelpad=xxx,size=xxx)
+cbar.ax.tick_params(labelsize=xxx)
 
 
 fig.savefig( directory_plot+"/map_prediction_uncert_/"+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
 fig.clf()
  
-
-
-
-'''print("minimum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).min()))
-print("maximum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).max()))
-fig, ax_prec_unct = plt.subplots(figsize=(18,6))
-fig.tight_layout()
-fig.subplots_adjust(right=0.9)
-cmap = sns.cubehelix_palette(8, start=0., rot=0.4, as_cmap=True)
-cbar_ax = fig.add_axes([0.92, 0.05, 0.03, 0.9])
-ax_prec_unct.set_title('Uncertainty in Prediction for '+subject)
-sns.heatmap(map_predict_unct, cmap=cmap, cbar=True,  square=True, xticklabels=False, yticklabels=False, mask=mask_exclude, ax=ax_prec_unct, cbar_ax=cbar_ax)
-ax_prec_unct.set_xlabel('Paleolongitude', labelpad=10)
-ax_prec_unct.set_ylabel('Paleolatitude',  labelpad=10)
-fig.savefig(directory_plot+"/map_prediction_uncert_/"+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
-fig.clf()'''
  
