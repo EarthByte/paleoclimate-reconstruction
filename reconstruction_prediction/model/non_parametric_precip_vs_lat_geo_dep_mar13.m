@@ -444,18 +444,18 @@
     resid_obs=y_precip_obs-precip_fit_hat_obs_expand;
     rmse_obs=mean((y_precip_obs-precip_fit_hat_obs_expand).^2);
     
-    hh=figure
-    for l=1:2
-        for i=1:floor(nvar_precip_lin/2)
-            if i+(l-1)*floor(nvar_precip_lin/2)+1<nvar_precip_lin
-                subplot(floor(nvar_precip_lin/2),2,i+(l-1)*floor(nvar_precip_lin/2))
-                histfit(squeeze(Beta_star(i+(l-1)*floor(nvar_precip_lin/2)+1,nwarmup:nloop+nwarmup)),30)
-                ylabel({'p(\beta|Y)'},'FontWeight','bold','FontSize',14);
-                xlabel({'\beta'},'FontWeight','bold','FontSize',14);
-                title([predict_names{i+(l-1)*floor(nvar_precip_lin/2)},'','Rainfall','',int2str(j)]);
-                hold on;
-                line([0, 0], ylim, 'LineWidth', 2, 'Color', 'r');
-
-            end
-        end
-    end 
+%     hh=figure
+%     for l=1:2
+%         for i=1:floor(nvar_precip_lin/2)
+%             if i+(l-1)*floor(nvar_precip_lin/2)+1<nvar_precip_lin
+%                 subplot(floor(nvar_precip_lin/2),2,i+(l-1)*floor(nvar_precip_lin/2))
+%                 histfit(squeeze(Beta_star(i+(l-1)*floor(nvar_precip_lin/2)+1,nwarmup:nloop+nwarmup)),30)
+%                 ylabel({'p(\beta|Y)'},'FontWeight','bold','FontSize',14);
+%                 xlabel({'\beta'},'FontWeight','bold','FontSize',14);
+%                 title([predict_names{i+(l-1)*floor(nvar_precip_lin/2)},'','Rainfall','',int2str(j)]);
+%                 hold on;
+%                 line([0, 0], ylim, 'LineWidth', 2, 'Color', 'r');
+% 
+%             end
+%         end
+%     end 
