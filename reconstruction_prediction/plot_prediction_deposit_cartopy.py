@@ -213,7 +213,7 @@ time1=predict_filename.split('era')
 time2=time1[1].split('results')
 figtime=time2[0]
 print("fig time=",figtime)
-plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
+#plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
 
 cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
 cbar.set_label('Prediction probability of '+subject,labelpad=xxx,size=xxx)  
@@ -249,7 +249,7 @@ time1=predict_filename.split('era')
 time2=time1[1].split('results')
 figtime=time2[0]
 print("fig time=",figtime)
-plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
+#plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
 
 cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
 cbar.set_label('Uncertainty for '+subject,labelpad=xxx,size=xxx)

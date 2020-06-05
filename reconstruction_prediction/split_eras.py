@@ -13,7 +13,7 @@ import csv
 from numpy import genfromtxt
 my_data = genfromtxt('results_all_14Mtrain.csv', delimiter=',')
 
-era_num = [14, 38, 39, 40, 51, 61, 77, 101, 129, 154, 182, 219, 242 ]
+era_num = [14, 38, 39, 40, 51, 61, 77, 101, 129, 154, 182, 219, 242, 249 ]
 
  
 for i in range(len(era_num)): 
