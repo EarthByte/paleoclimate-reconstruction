@@ -39,6 +39,12 @@ if not os.path.exists(directory_plot):
     os.makedirs(directory_plot) 
 
 directory_plot =  predict_folder+'/'+subject + "/map_prediction"
+
+
+if not os.path.exists(directory_plot):
+    os.makedirs(directory_plot) 
+
+directory_plot =  predict_folder+'/'+subject + "/map_elev"
  
 
 if not os.path.exists(directory_plot):
@@ -105,11 +111,15 @@ map_predict_low  = np.zeros((nlatbins,nlonbins))
 map_predict_high = np.zeros((nlatbins,nlonbins))
 map_predict_unct = np.zeros((nlatbins,nlonbins))
 mask_exclude     = np.zeros((nlatbins,nlonbins))
+map_elev = np.zeros((nlatbins,nlonbins))
+
+
 list_mean = []
 list_low  = []
 list_high = []
 list_unct = []
 list_actual = []
+list_elev = []
 
 if subject == 'coal':
     actual_col =  15
@@ -131,6 +141,8 @@ if subject == 'evaporites':
     high_col =  13
     low_col =  10
     print(subject, ' is subject')
+
+
 
 
  
@@ -164,12 +176,14 @@ for ilon,lon_low in enumerate(lon_coords):
             map_predict_mean[nlatbins-ilat-1,ilon] = pred_wrapper(predictions.loc[here,mean_col].values)
             map_predict_low[nlatbins-ilat-1,ilon]  = pred_wrapper(predictions.loc[here,low_col].values)
             map_predict_high[nlatbins-ilat-1,ilon] = pred_wrapper(predictions.loc[here,high_col].values)
+            map_elev[nlatbins-ilat-1,ilon] = pred_wrapper(predictions.loc[here,22].values)
             map_predict_unct[nlatbins-ilat-1,ilon] = pred_wrapper(map_predict_high[nlatbins-ilat-1,ilon] - map_predict_low[nlatbins-ilat-1,ilon])
             list_mean.append(map_predict_mean[nlatbins-ilat-1,ilon])
             list_low.append(map_predict_high[nlatbins-ilat-1,ilon])
             list_high.append(map_predict_low[nlatbins-ilat-1,ilon])
             list_unct.append(map_predict_unct[nlatbins-ilat-1,ilon])
             list_actual.append(map_predict_actual[nlatbins-ilat-1,ilon])
+            list_elev.append(map_elev[nlatbins-ilat-1,ilon])
         else:
             mask_exclude[nlatbins-ilat-1,ilon] = True
 
@@ -259,4 +273,35 @@ cbar.ax.tick_params(labelsize=xxx)
 fig.savefig( directory_plot+"/map_prediction_uncert_/"+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
 fig.clf()
  
+ 
+
+
+# set up a map
+fig = plt.figure(figsize=(16,12),dpi=150)
+ax = plt.axes(projection=ccrs.Mollweide())
+ax.set_global()
+ax.gridlines(linewidth=0.1)
+
+#Create the varible to plot
+intensity = np.ma.masked_where(np.isnan(map_elev), map_elev) 
+#Plot on map
+mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_earth_r,transform=ccrs.PlateCarree())
+#Add additional points
+#line=ax.scatter(actual_lon,actual_lat,transform=ccrs.PlateCarree(),label='Deposit location') 
+#Add the legend, colorbar and some text
+plt.legend(loc=3,prop={'size': 18}) 
+#Get the current time from the filename
+time1=predict_filename.split('era')
+time2=time1[1].split('results')
+figtime=time2[0]
+print("fig time=",figtime)
+#plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
+
+cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
+cbar.set_label('Elevation (meters)',labelpad=xxx,size=xxx)
+cbar.ax.tick_params(labelsize=xxx)
+
+
+fig.savefig( directory_plot+"/map_elev/"+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
+fig.clf()
  

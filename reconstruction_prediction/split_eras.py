@@ -11,14 +11,17 @@ import csv
 
 
 from numpy import genfromtxt
-my_data = genfromtxt('results_all_14Mtrain.csv', delimiter=',')
+#my_data = genfromtxt('results_all_14Mtrain.csv', delimiter=',')
+
+
+my_data = genfromtxt('results_all_14Mtrain_elev.csv', delimiter=',')
 
 era_num = [14, 38, 39, 40, 51, 61, 77, 101, 129, 154, 182, 219, 242, 249 ]
 
  
 for i in range(len(era_num)): 
 
-	era_index = np.where(my_data[:, 22]==era_num[i])[0]
+	era_index = np.where(my_data[:, 23]==era_num[i])[0]
 
 	print(era_index.shape)
 
