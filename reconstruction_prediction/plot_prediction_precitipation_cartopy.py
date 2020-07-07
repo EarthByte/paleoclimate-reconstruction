@@ -270,7 +270,7 @@ print("fig time=",figtime)
 #plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
 
 cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
-cbar.set_label('Prediction for '+subject + ' (m/yr)',labelpad=xxx,size=xxx)
+cbar.set_label('Prediction of '+subject + ' (m/yr)',labelpad=xxx,size=xxx)
 cbar.ax.tick_params(labelsize=xxx)
 
 
@@ -278,23 +278,34 @@ fig.savefig( directory_plot+"/map_prediction/" +subject+ predict_filename+".pdf"
 fig.clf()
  
 
+ 
 
 
+# set up a map
+fig = plt.figure(figsize=(16,12),dpi=150)
+ax = plt.axes(projection=ccrs.Mollweide())
+ax.set_global()
+ax.gridlines(linewidth=0.1)
+
+#Create the varible to plot
+intensity = np.ma.masked_where(np.isnan(map_predict_unct), map_predict_unct) 
+#Plot on map
+mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_earth_r,transform=ccrs.PlateCarree())
+ 
+time1=predict_filename.split('era')
+time2=time1[1].split('results')
+figtime=time2[0]
+print("fig time=",figtime)
+#plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
+
+cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
+cbar.set_label('Prediction Uncertainty   (m/yr)',labelpad=xxx,size=xxx)
+cbar.ax.tick_params(labelsize=xxx)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+fig.savefig( directory_plot+"/map_prediction_uncert/" +subject+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
+fig.clf()
+ 
 
 
 
@@ -315,6 +326,8 @@ plt.xlabel('Grid indentification number')
 plt.savefig(directory_plot+"/plot_graph/"+subject+predict_filename+".pdf")
 plt.clf()
 
+print(list_low[0:5], list_high[0:5])
+
  
 plt.plot(x[0:100], list_mean[0:100], label='prediction')
 plt.plot(x[0:100], list_low[0:100], label='pred.(5th percen.)')
@@ -326,43 +339,16 @@ plt.title("Prediction with uncertainty ")
 
 plt.xlabel('Grid indentification number')
 plt.ylabel('Precitipation')
-plt.savefig(directory_plot+"/snapshot_plot/"+subject+".pdf")
+plt.savefig(directory_plot+"/snapshot_plot/"+subject+predict_filename+"_.pdf")
 plt.clf()
 
 #-------------------------------------------------------
 
 
 
-# set up a map
-fig = plt.figure(figsize=(16,12),dpi=150)
-ax = plt.axes(projection=ccrs.Mollweide())
-ax.set_global()
-ax.gridlines(linewidth=0.1)
-
-#Create the varible to plot
-intensity = np.ma.masked_where(np.isnan(map_predict_unct), map_predict_unct) 
-#Plot on map
-mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_earth_r,transform=ccrs.PlateCarree())
- 
-time1=predict_filename.split('era')
-time2=time1[1].split('results')
-figtime=time2[0]
-print("fig time=",figtime)
-plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
-
-#cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
-cbar.set_label('Prediction for '+subject + ' (m/yr)',labelpad=xxx,size=xxx)
-cbar.ax.tick_params(labelsize=xxx)
-
-
-fig.savefig( directory_plot+"/map_prediction_uncert/" +subject+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
-fig.clf()
- 
 
 #--------------------------------------------------------
- 
- 
-
+'''
 
 
 
@@ -376,7 +362,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	ax = plt.axes(projection=ccrs.Mollweide())
 	ax.set_global()
 	ax.gridlines(linewidth=0.1) 
-	intensity = np.ma.masked_where(np.isnan(map_predict_actual), map_predict_actual) 
+	intensity = np.ma.masked_where(np.isnan(map_predict_actual), mtypeap_predict_actual) 
 
  
 	#Plot on map
@@ -442,7 +428,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	fig.clf()
  
 
-
+'''
 
 
 	 
