@@ -1,0 +1,12 @@
+1 region_id
+2 centroid_x
+3 centroid_y
+4 CoalDeposits
+5 EvaporitesDeposits
+6 GlacialDeposits
+7 Elevation
+8 SqrtElevation
+9 DistShore
+10 SqrtDist
+11 SinAngleShore
+12 CosAngleShore
