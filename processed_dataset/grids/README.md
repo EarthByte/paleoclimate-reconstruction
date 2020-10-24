@@ -10,7 +10,7 @@ Each of the key predictor variables are provided as nerCDF grids with the follow
 * scale_factor: 1 add_offset: 0
 * format: classic
 
-Grids were generated from the predictor data csv files using the [Generic Mapping Tools-GMT](https://www.generic-mapping-tools.org/).
+Grids were generated from the predictor data csv files using the [Generic Mapping Tools-GMT 5.4.3](https://www.generic-mapping-tools.org/).
 These commands were used to generate the grids:
 
 ```
