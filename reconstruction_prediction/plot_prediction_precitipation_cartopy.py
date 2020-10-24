@@ -34,6 +34,11 @@ rcParams['figure.dpi']= fig_dpi
 print("   Begin *******                   ********           *********  ")
 
 
+def rmse( predictions, targets):
+	return np.sqrt(((predictions - targets) ** 2).mean())
+
+def mse( predictions, targets):
+	return np.sum((predictions - targets) ** 2)/targets.shape[0]
 
 # ## Input/Output Folders
 
@@ -348,43 +353,13 @@ plt.clf()
 
 
 #--------------------------------------------------------
-'''
 
 
 
 
-if (type_pred == "miocene") or (type_pred == "eocene"):
 
- 
-
-	# set up a map
-	fig = plt.figure(figsize=(16,12),dpi=150)
-	ax = plt.axes(projection=ccrs.Mollweide())
-	ax.set_global()
-	ax.gridlines(linewidth=0.1) 
-	intensity = np.ma.masked_where(np.isnan(map_predict_actual), mtypeap_predict_actual) 
-
- 
-	#Plot on map
-	mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_earth_r,transform=ccrs.PlateCarree())
- 
-	time1=predict_filename.split('era')
-	time2=time1[1].split('results')
-	figtime=time2[0]
-	print("fig time=",figtime)
-	#plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
-
-	cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
-	cbar.set_label('Prediction for '+subject + ' (m/yr)',labelpad=xxx,size=xxx)
-	cbar.ax.tick_params(labelsize=xxx)
-
-
-	fig.savefig( directory_plot+"/map_actual/" +subject+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
-	fig.clf()
-
-	 
-
-
+if (type_pred == "miocene") or (type_pred == "eocene"): 
+	
 	plt.plot(x[0:100], list_actual[0:100], label='actual')
 	plt.plot(x[0:100], list_mean[0:100], label='prediction')
 	plt.plot(x[0:100], list_low[0:100], label='pred.(5th percen.)')
@@ -397,38 +372,55 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	plt.xlabel('Grid indentification number')
 	plt.ylabel('Precipitation')
 	plt.savefig(directory_plot+"/snapshot_plot/"+subject+predict_filename+".pdf")
+	plt.clf() 
+
+	pred =np.asarray(list_mean)
+	actual = np.asarray(list_actual)
+
+	rmse_ = rmse( actual, pred)
+ 
+
+	print(rmse_,' RMSE of ', type_pred)
+
+
+	size = 23
+
+	plt.tick_params(labelsize=size)
+	params = {'legend.fontsize': size, 'legend.handlelength': 2}
+	plt.rcParams.update(params)
+	plt.grid(alpha=0.75)
+
+	plt.hist(pred,  bins=20,  alpha=0.5, label = 'Prediction', color = 'blue', edgecolor = 'black')   
+
+	#plt.hist(actual, bins=30,    alpha=0.5, label = 'Actual', color = 'red', edgecolor = 'blue')  
+	plt.title("Predicted Precipitation Distribution ", fontsize = size)
+	plt.xlabel(' Precipitation  ', fontsize = size)
+	plt.ylabel(' Frequency ', fontsize = size) 
+	plt.tight_layout()  
+	plt.savefig(directory_plot+"/snapshot_plot/"+subject+predict_filename+ '_histogram_pred.pdf')
 	plt.clf()
 
-	print("minimum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).min()))
-	print("maximum uncertainty is "+str(np.ma.array(list(map_predict_unct),mask=mask_exclude).max()))
 
-	 
-	fig = plt.figure(figsize=(16,12),dpi=150)
-	ax = plt.axes(projection=ccrs.Mollweide())
-	ax.set_global()
-	ax.gridlines(linewidth=0.1)
-
-	#Create the varible to plot
-	intensity = np.ma.masked_where(np.isnan(map_predict_unct), map_predict_unct) 
-	#Plot on map
-	mapscat=plt.pcolormesh(lons,-lats,intensity,shading='flat',cmap=plt.cm.gist_earth_r,transform=ccrs.PlateCarree())
- 
-	time1=predict_filename.split('era')
-	time2=time1[1].split('results')
-	figtime=time2[0]
-	print("fig time=",figtime)
-	#plt.text(14000000,7000000,str(figtime)+" Ma",size=20)
-
-	cbar=plt.colorbar(mapscat, ax=ax, orientation="vertical", pad=0.05, fraction=0.015, shrink=0.5)
-	cbar.set_label('Prediction for '+subject + ' (m/yr)',labelpad=xxx,size=xxx)
-	cbar.ax.tick_params(labelsize=xxx)
-
-
-	fig.savefig( directory_plot+"/map_prediction_uncert/" +subject+ predict_filename+".pdf", pad_inches=0.6, bbox_inches='tight')
-	fig.clf()
  
 
-'''
+	plt.tick_params(labelsize=size)
+	params = {'legend.fontsize': size, 'legend.handlelength': 2}
+	plt.rcParams.update(params)
+	plt.grid(alpha=0.75)
+
+	plt.hist(actual,    bins=20,  alpha=0.5, label = 'Actual', color = 'red', edgecolor = 'black')   
+	plt.title("Actual Precipitation Distribution ", fontsize = size)
+	plt.xlabel(' Precipitation ', fontsize = size)
+	plt.ylabel(' Frequency ', fontsize = size) 
+	plt.tight_layout()  
+	plt.savefig(directory_plot+"/snapshot_plot/"+subject+predict_filename+ '_histogram_actual.pdf')
+	plt.clf()
+
+
+	np.savetxt(directory_plot+"/snapshot_plot/"+subject+predict_filename+type_pred+'pred.txt', (pred,actual), fmt='%.18g', delimiter=' ', newline=os.linesep)
+
+
+ 
 
 
 	 
