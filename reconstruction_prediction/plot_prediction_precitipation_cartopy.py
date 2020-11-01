@@ -359,7 +359,7 @@ plt.clf()
 
 
 if (type_pred == "miocene") or (type_pred == "eocene"): 
-	
+
 	plt.plot(x[0:100], list_actual[0:100], label='actual')
 	plt.plot(x[0:100], list_mean[0:100], label='prediction')
 	plt.plot(x[0:100], list_low[0:100], label='pred.(5th percen.)')
@@ -417,7 +417,7 @@ if (type_pred == "miocene") or (type_pred == "eocene"):
 	plt.clf()
 
 
-	np.savetxt(directory_plot+"/snapshot_plot/"+subject+predict_filename+type_pred+'pred.txt', (pred,actual), fmt='%.18g', delimiter=' ', newline=os.linesep)
+	np.savetxt(directory_plot+"/snapshot_plot/"+subject+predict_filename+type_pred+'pred.txt', (pred,actual), fmt='%.18g', delimiter=', ', newline=os.linesep)
 
 
  
