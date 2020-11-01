@@ -20,7 +20,7 @@ for i in ../*.csv;
 		do var=$(awk -v taskID=$j '$1==taskID {print $2}' params.txt); 
 		awk -F',' -v id=$j '{print $2, $1, $id}' $i > temp.xyz; 
 		gmt blockmean -I3d -Rg temp.xyz > temp.block; 
-		gmt nearneighbor -N2 -S500k -I3d -Rg temp.block -G${base}_${var}.tif; 
+		gmt nearneighbor -N2 -S500k -I3d -Rg temp.block -G${base}_${var}.nc; 
 	done; 
 done
 ```
