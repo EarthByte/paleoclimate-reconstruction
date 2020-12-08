@@ -88,5 +88,15 @@ Note: This code is adapted from [GPplus](https://github.com/sebhaan/GPplus). Cha
 
 * use [Anaconda environment](environment.yml)
 
+## License
+
+*  [GPL-3.0 License](https://www.gnu.org/licenses/quick-guide-gplv3.html)   
+* [CC BY-NC-ND 4.0 License](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+
+## Citation
+* R. Chandra, D. Muller, N. Butterworth, and S. Cripps, "Precipitation reconstruction from climate-sensitive lithologies using Bayesian machine learning", Environmental Modelling & Software, 2021 (To Appear). 
+
+
+
 
 
