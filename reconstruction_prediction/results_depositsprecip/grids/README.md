@@ -15,12 +15,13 @@ Grids were generated from the era???results.csv data files using the Generic Map
 ```
 for i in ../*.csv; 
 	do base=${i%results.csv}; 
-	echo $base; 
-	for j in {7..18}; 
+	nm=`echo "$base" | cut -c 7-`;
+	echo $nm; 
+	for j in {6..17}; 
 		do var=$(awk -v taskID=$j '$1==taskID {print $2}' params.txt); 
 		awk -F',' -v id=$j '{print $2, $1, $id}' $i > temp.xyz; 
 		gmt blockmean -I3d -Rg temp.xyz > temp.block; 
-		gmt nearneighbor -N2 -S500k -I3d -Rg temp.block -G${base}_${var}.nc; 
+		gmt nearneighbor -N2 -S500k -I3d -Rg temp.block -G${nm}Ma_${var}.nc; 
 	done; 
 done
 ```
