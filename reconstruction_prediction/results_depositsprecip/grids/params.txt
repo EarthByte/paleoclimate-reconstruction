@@ -1,12 +1,12 @@
 6 coal_mean
-7 precip_mean
+7 evap_mean
 8 glacial_mean
 9 coal_low
-10 precip_low
+10 evap_low
 11 glacial_low
 12 coal_high
-13 precip_high
+13 evap_high
 14 glacial_high
 15 coal_actual
-16 precip_actual
+16 evap_actual
 17 glacial_actual
