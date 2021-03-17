@@ -17,11 +17,11 @@ for i in ../*.csv;
 	do base=${i%results.csv}; 
 	nm=`echo "$base" | cut -c 7-`;
 	echo $nm; 
-	for j in {2..17}; 
+	for j in {3..18}; 
 		do var=$(awk -v taskID=$j '$1==taskID {print $2}' params.txt); 
 		awk -F',' -v id=$j '{print $2, $1, $id}' $i > temp.xyz; 
 		gmt blockmean -I3d -Rg temp.xyz > temp.block; 
-		gmt nearneighbor -N2 -S500k -I3d -Rg temp.block -G${nm}Ma_${var}.nc; 
+		gmt nearneighbor -N2 -S500k -di-999 -I3d -Rg temp.block -G${nm}Ma_${var}.nc; 
 	done; 
 done
 ```
