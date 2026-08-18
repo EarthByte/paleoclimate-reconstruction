@@ -12,7 +12,7 @@ We have available to us the following datasets:
 
 
 ## Step 0: Installation
-* Check that you have necessary packages installed (see `requirements.txt`)
+* Check that you have necessary packages installed (see [environment.yml](environment.yml))
 * download the `query_paleogeography/` folder from: https://cloudstor.aarnet.edu.au/plus/s/HRkPptZuiZEm8OV 
 * install pyGPlates (instructions at http://www.gplates.org/docs/pygplates/index.html )
 * install GMT
